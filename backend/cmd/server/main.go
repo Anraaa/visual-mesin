@@ -24,6 +24,7 @@ import (
 	"github.com/anraaa/visual-mesin/internal/repository"
 	"github.com/anraaa/visual-mesin/internal/routes"
 	"github.com/anraaa/visual-mesin/internal/services"
+	"github.com/anraaa/visual-mesin/internal/ws"
 
 	_ "github.com/anraaa/visual-mesin/docs"
 )
@@ -50,6 +51,8 @@ func main() {
 		log.Printf("Migration warning: %v", err)
 	}
 
+	db.SeedDefaultUsers(gormDB)
+
 	dbMgr := db.NewManager()
 
 	redisAddr := fmt.Sprintf("%s:%d", cfg.RedisHost, cfg.RedisPort)
@@ -60,7 +63,7 @@ func main() {
 	})
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		log.Printf("Redis not available: %v (export worker will not start)", err)
+		log.Printf("Redis not available: %v", err)
 	}
 
 	jwtExpiry, _ := time.ParseDuration(cfg.JWTExpiry)
@@ -76,13 +79,16 @@ func main() {
 	dbConnSvc := services.NewDBConnectionService(dbConnRepo, dbMgr, gormDB)
 	resourceDBConfigSvc := services.NewResourceDBConfigService(resourceDBConfigRepo, dbMgr, gormDB)
 	resourceQuerySvc := services.NewResourceQueryService(resourceDBConfigRepo, dbMgr)
+	activityLogSvc := services.NewActivityLogService(gormDB)
 
-	exportSvc := services.NewExportService(exportJobRepo, resourceQuerySvc, rdb, dbMgr, cfg.ExportDir)
+	// WebSocket Hub
+	wsHub := ws.NewHub()
+	go wsHub.Run()
+
+	exportSvc := services.NewExportService(exportJobRepo, resourceQuerySvc, rdb, dbMgr, cfg.ExportDir, wsHub, activityLogSvc)
 	exportSvc.StartWorker()
 
-	// =========================================
-	// Fase 6: AI Chat Assistant
-	// =========================================
+	// AI Chat
 	aiSchemaMapRepo := repository.NewAiSchemaMapRepository(gormDB)
 	aiChatHistoryRepo := repository.NewAiChatHistoryRepository(gormDB)
 
@@ -111,6 +117,7 @@ func main() {
 	resourceDBHandler := handlers.NewResourceDBConfigHandler(resourceDBConfigSvc)
 	resourceQueryHandler := handlers.NewResourceQueryHandler(resourceQuerySvc)
 	exportHandler := handlers.NewExportHandler(exportSvc)
+	activityLogHandler := handlers.NewActivityLogHandler(activityLogSvc)
 
 	ginMode := gin.DebugMode
 	if cfg.AppEnv == "production" {
@@ -122,7 +129,9 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	routes.Setup(r, authHandler, jwtSvc, dbConnHandler, resourceDBHandler, resourceQueryHandler, userHandler, roleHandler, exportHandler, aiSchemaMapHandler, aiChatHandler)
+	routes.Setup(r, authHandler, jwtSvc, dbConnHandler, resourceDBHandler, resourceQueryHandler,
+		userHandler, roleHandler, exportHandler, aiSchemaMapHandler, aiChatHandler,
+		wsHub, activityLogHandler, cfg.JWTSecret)
 
 	addr := ":" + cfg.ServerPort
 	log.Printf("Server starting on %s", addr)

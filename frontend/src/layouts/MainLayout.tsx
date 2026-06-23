@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Button, theme, Dropdown, Avatar } from 'antd'
+import {
+  Layout, Menu, Button, theme, Dropdown, Avatar, Badge, List, Typography, Popover, Space,
+} from 'antd'
 import {
   DashboardOutlined,
   MenuFoldOutlined,
@@ -15,11 +17,17 @@ import {
   SafetyOutlined,
   LinkOutlined,
   ExportOutlined,
+  BellOutlined,
+  HistoryOutlined,
+  CheckOutlined,
 } from '@ant-design/icons'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
+import { useWebSocket } from '../hooks/useWebSocket'
+import { useNotificationStore } from '../stores/notificationStore'
 
 const { Header, Sider, Content } = Layout
+const { Text } = Typography
 
 const menuItems = [
   { key: '/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
@@ -44,6 +52,20 @@ export default function MainLayout() {
   const { user, logout } = useAuthStore()
   const { darkMode, toggleTheme } = useThemeStore()
   const { token: themeToken } = theme.useToken()
+  const { notifications, addNotification, markAllRead, unreadCount } = useNotificationStore()
+
+  const wsHandlers: Record<string, (payload: any) => void> = {
+    notification: useCallback((payload: any) => {
+      addNotification({
+        type: payload.type,
+        title: payload.title,
+        message: payload.message,
+      })
+    }, [addNotification]),
+    pong: () => {},
+  }
+
+  useWebSocket(wsHandlers)
 
   const handleLogout = () => {
     logout()
@@ -63,6 +85,37 @@ export default function MainLayout() {
   }
 
   const selectedKey = '/' + location.pathname.split('/').slice(1, 3).join('/')
+
+  const notificationContent = (
+    <div style={{ width: 360, maxHeight: 400, overflow: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #f0f0f0' }}>
+        <Text strong>Notifikasi</Text>
+        <Button type="link" size="small" onClick={markAllRead}>Tandai Dibaca</Button>
+      </div>
+      {notifications.length === 0 ? (
+        <div style={{ padding: 24, textAlign: 'center', color: '#999' }}>Tidak ada notifikasi</div>
+      ) : (
+        <List
+          dataSource={notifications.slice(0, 20)}
+          renderItem={(item) => (
+            <List.Item
+              style={{
+                padding: '8px 12px',
+                background: item.read ? 'transparent' : '#e6f4ff',
+                cursor: 'pointer',
+              }}
+              onClick={() => useNotificationStore.getState().markRead(item.id)}
+            >
+              <List.Item.Meta
+                title={<Text strong={!item.read}>{item.title}</Text>}
+                description={<Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Text>}
+              />
+            </List.Item>
+          )}
+        />
+      )}
+    </div>
+  )
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -110,7 +163,21 @@ export default function MainLayout() {
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Space size="middle">
+            <Button
+              type="text"
+              icon={<HistoryOutlined />}
+              onClick={() => navigate('/admin/activity-logs')}
+            />
+            <Popover
+              content={notificationContent}
+              trigger="click"
+              placement="bottomRight"
+            >
+              <Badge count={unreadCount()} size="small">
+                <Button type="text" icon={<BellOutlined />} />
+              </Badge>
+            </Popover>
             <Button
               type="text"
               icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
@@ -122,7 +189,7 @@ export default function MainLayout() {
                 <span>{user?.user_name || user?.name || 'User'}</span>
               </div>
             </Dropdown>
-          </div>
+          </Space>
         </Header>
         <Content style={{ margin: 24 }}>
           <Outlet />

@@ -14,17 +14,20 @@ import (
 	"github.com/anraaa/visual-mesin/internal/db"
 	"github.com/anraaa/visual-mesin/internal/models"
 	"github.com/anraaa/visual-mesin/internal/repository"
+	"github.com/anraaa/visual-mesin/internal/ws"
 )
 
 const exportQueueKey = "export:queue"
 const exportResultPrefix = "export:result:"
 
 type ExportService struct {
-	repo      *repository.ExportJobRepository
-	querySvc  *ResourceQueryService
-	rdb       *redis.Client
-	dbMgr     *db.Manager
-	exportDir string
+	repo           *repository.ExportJobRepository
+	querySvc       *ResourceQueryService
+	rdb            *redis.Client
+	dbMgr          *db.Manager
+	exportDir      string
+	wsHub          *ws.Hub
+	activityLogSvc *ActivityLogService
 }
 
 func NewExportService(
@@ -33,13 +36,17 @@ func NewExportService(
 	rdb *redis.Client,
 	dbMgr *db.Manager,
 	exportDir string,
+	wsHub *ws.Hub,
+	activityLogSvc *ActivityLogService,
 ) *ExportService {
 	return &ExportService{
-		repo:      repo,
-		querySvc:  querySvc,
-		rdb:       rdb,
-		dbMgr:     dbMgr,
-		exportDir: exportDir,
+		repo:           repo,
+		querySvc:       querySvc,
+		rdb:            rdb,
+		dbMgr:          dbMgr,
+		exportDir:      exportDir,
+		wsHub:          wsHub,
+		activityLogSvc: activityLogSvc,
 	}
 }
 
@@ -230,6 +237,37 @@ func (s *ExportService) processJob(jobID uint) {
 	job.CompletedAt = &completed
 	job.ProcessedRows = totalWritten
 	s.repo.Update(job)
+
+	s.broadcastExportComplete(job)
+}
+
+func (s *ExportService) broadcastExportComplete(job *models.ExportJob) {
+	if s.wsHub == nil {
+		return
+	}
+
+	msg := ws.Message{
+		Type: "notification",
+		Payload: mustJSON(map[string]interface{}{
+			"type":          "export_completed",
+			"title":         "Export Selesai",
+			"message":       fmt.Sprintf("Export %s selesai — %d baris", job.ResourceName, job.ProcessedRows),
+			"job_id":        job.ID,
+			"resource_name": job.ResourceName,
+			"total_rows":    job.ProcessedRows,
+			"status":        job.Status,
+		}),
+	}
+
+	s.wsHub.BroadcastToUser(job.UserID, msg)
+
+	if s.activityLogSvc != nil {
+		s.activityLogSvc.Log(job.UserID, "export", fmt.Sprintf("Export %s: %d baris", job.ResourceName, job.ProcessedRows), "export_completed", map[string]interface{}{
+			"job_id":        job.ID,
+			"resource_name": job.ResourceName,
+			"total_rows":    job.ProcessedRows,
+		})
+	}
 }
 
 func (s *ExportService) GetJobStatus(jobID uint) (*models.ExportJobStatusResponse, error) {
@@ -299,4 +337,9 @@ func (s *ExportService) failJob(job *models.ExportJob, msg string) {
 
 func strPtr(s string) *string {
 	return &s
+}
+
+func mustJSON(v interface{}) []byte {
+	data, _ := json.Marshal(v)
+	return data
 }

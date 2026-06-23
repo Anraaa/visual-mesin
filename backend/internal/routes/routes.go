@@ -6,6 +6,7 @@ import (
 	"github.com/anraaa/visual-mesin/internal/handlers"
 	"github.com/anraaa/visual-mesin/internal/middleware"
 	"github.com/anraaa/visual-mesin/internal/services"
+	"github.com/anraaa/visual-mesin/internal/ws"
 )
 
 func Setup(
@@ -20,10 +21,17 @@ func Setup(
 	exportHandler *handlers.ExportHandler,
 	aiSchemaMapHandler *handlers.AiSchemaMapHandler,
 	aiChatHandler *handlers.AiChatHandler,
+	wsHub *ws.Hub,
+	activityLogHandler *handlers.ActivityLogHandler,
+	jwtSecret string,
 ) {
 	r.Use(middleware.CORS())
 
 	r.Static("/exports", "./exports")
+
+	r.GET("/ws", func(c *gin.Context) {
+		ws.HandleWebSocket(wsHub, jwtSecret)(c.Writer, c.Request)
+	})
 
 	api := r.Group("/api/v1")
 	{
@@ -90,6 +98,12 @@ func Setup(
 				exports.POST("", exportHandler.Submit)
 				exports.GET("/:id", exportHandler.GetStatus)
 				exports.GET("/:id/download", exportHandler.Download)
+			}
+
+			activityLog := auth.Group("/activity-logs")
+			{
+				activityLog.GET("", activityLogHandler.List)
+				activityLog.GET("/me", activityLogHandler.ListMy)
 			}
 		}
 	}
