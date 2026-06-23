@@ -122,9 +122,19 @@ Backend berjalan di `http://localhost:8080`, Frontend di `http://localhost:5173`
 | POST | `/api/v1/db-connections/test` | Test koneksi DB |
 | GET | `/api/v1/resource-db-configs` | List resource DB configs |
 | POST | `/api/v1/resource-db-configs` | Tambah resource DB config |
-| GET | `/api/v1/resources/:resource` | Query data produksi |
+| GET | `/api/v1/resources/:resource` | List data produksi |
 | GET | `/api/v1/resources/:resource/:id` | Detail data produksi |
+| POST | `/api/v1/resources/:resource` | Tambah data produksi |
+| PUT | `/api/v1/resources/:resource/:id` | Update data produksi |
+| DELETE | `/api/v1/resources/:resource/:id` | Hapus data produksi |
 | GET | `/api/v1/resources/:resource/columns` | Kolom tabel produksi |
+| GET | `/api/v1/building/:table` | Building data (rtba1-3, rtbc1-4, rtbe1-2) |
+| GET | `/api/v1/extruder/:table` | Extruder data (rteex1-3, cyclic, pcs, datalog) |
+| GET | `/api/v1/curing/:table` | Curing data (curtire, item_measurement, gtentire) |
+| GET | `/api/v1/trimming/:table` | Trimming data (trimming, rtc-tr1) |
+| GET | `/api/v1/monitoring/:table` | Monitoring data (monitoringtl1, alarm, yield) |
+| GET | `/api/v1/recipe/:table` | Recipe & order data |
+| GET | `/api/v1/master/:table` | Master data (mesin, bpbl, material) |
 | GET | `/swagger/*any` | Dokumentasi Swagger |
 
 ## Database
@@ -140,7 +150,7 @@ Arsitektur multi-database:
 | 0 | ✅ Selesai | Project setup, Docker, migrations |
 | 1 | ✅ Selesai | Auth & RBAC (JWT, login, register) |
 | 2 | ✅ Selesai | Dynamic DB connection manager + CRUD configs |
-| 3 | ⬜ Belum | Resource table APIs (Building, Extruder, Curing, dll) |
+| 3 | ✅ Selesai | Resource table APIs (Building, Extruder, Curing, dll) |
 | 4 | ⬜ Belum | Frontend foundation (layout, login, theme) |
 | 5 | ⬜ Belum | Frontend feature pages |
 | 6 | ⬜ Belum | AI Chat Assistant |

@@ -42,25 +42,30 @@ type ColumnInfo struct {
 	Type string `json:"type"`
 }
 
-func (s *ResourceQueryService) QueryResource(resourceName string, params QueryParams) (*QueryResult, error) {
+func (s *ResourceQueryService) getGormDB(resourceName string) (*gorm.DB, error) {
 	cfg, err := s.resourceRepo.FindByResourceName(resourceName)
 	if err != nil {
 		return nil, fmt.Errorf("resource not found: %s", resourceName)
 	}
-
 	if !cfg.IsActive {
 		return nil, fmt.Errorf("resource is not active: %s", resourceName)
 	}
-
 	decrypted, err := utils.Decrypt(cfg.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt password: %w", err)
 	}
-
 	dsn := db.BuildDSN(cfg.Host, cfg.Port, cfg.Username, decrypted, cfg.DatabaseName)
 	gdb, err := s.dbMgr.GetGORM(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to resource db: %w", err)
+	}
+	return gdb, nil
+}
+
+func (s *ResourceQueryService) QueryResource(resourceName string, params QueryParams) (*QueryResult, error) {
+	gdb, err := s.getGormDB(resourceName)
+	if err != nil {
+		return nil, err
 	}
 
 	columns, err := getTableColumns(gdb, resourceName)
@@ -73,7 +78,6 @@ func (s *ResourceQueryService) QueryResource(resourceName string, params QueryPa
 	if params.Search != "" && params.SearchBy != "" {
 		q = q.Where(fmt.Sprintf("%s LIKE ?", params.SearchBy), "%"+params.Search+"%")
 	}
-
 	if params.SortBy != "" {
 		dir := "ASC"
 		if params.SortDir == "desc" {
@@ -116,32 +120,65 @@ func (s *ResourceQueryService) QueryResource(resourceName string, params QueryPa
 }
 
 func (s *ResourceQueryService) QueryByID(resourceName string, idColumn string, idValue interface{}) (map[string]interface{}, error) {
-	cfg, err := s.resourceRepo.FindByResourceName(resourceName)
+	gdb, err := s.getGormDB(resourceName)
 	if err != nil {
-		return nil, fmt.Errorf("resource not found: %s", resourceName)
-	}
-
-	if !cfg.IsActive {
-		return nil, fmt.Errorf("resource is not active: %s", resourceName)
-	}
-
-	decrypted, err := utils.Decrypt(cfg.Password)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt password: %w", err)
-	}
-
-	dsn := db.BuildDSN(cfg.Host, cfg.Port, cfg.Username, decrypted, cfg.DatabaseName)
-	gdb, err := s.dbMgr.GetGORM(dsn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to resource db: %w", err)
+		return nil, err
 	}
 
 	var result map[string]interface{}
 	if err := gdb.Table(resourceName).Where(fmt.Sprintf("%s = ?", idColumn), idValue).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("record not found: %w", err)
 	}
-
 	return result, nil
+}
+
+func (s *ResourceQueryService) Create(resourceName string, data map[string]interface{}) (map[string]interface{}, error) {
+	gdb, err := s.getGormDB(resourceName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := gdb.Table(resourceName).Create(data).Error; err != nil {
+		return nil, fmt.Errorf("failed to create record: %w", err)
+	}
+
+	if id, ok := data["id"]; ok {
+		var result map[string]interface{}
+		gdb.Table(resourceName).Where("id = ?", id).First(&result)
+		return result, nil
+	}
+	return data, nil
+}
+
+func (s *ResourceQueryService) Update(resourceName string, idColumn string, idValue interface{}, data map[string]interface{}) (map[string]interface{}, error) {
+	gdb, err := s.getGormDB(resourceName)
+	if err != nil {
+		return nil, err
+	}
+
+	delete(data, idColumn)
+
+	if err := gdb.Table(resourceName).Where(fmt.Sprintf("%s = ?", idColumn), idValue).Updates(data).Error; err != nil {
+		return nil, fmt.Errorf("failed to update record: %w", err)
+	}
+
+	var result map[string]interface{}
+	if err := gdb.Table(resourceName).Where(fmt.Sprintf("%s = ?", idColumn), idValue).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("record not found after update: %w", err)
+	}
+	return result, nil
+}
+
+func (s *ResourceQueryService) Delete(resourceName string, idColumn string, idValue interface{}) error {
+	gdb, err := s.getGormDB(resourceName)
+	if err != nil {
+		return err
+	}
+
+	if err := gdb.Table(resourceName).Where(fmt.Sprintf("%s = ?", idColumn), idValue).Delete(nil).Error; err != nil {
+		return fmt.Errorf("failed to delete record: %w", err)
+	}
+	return nil
 }
 
 func getTableColumns(gdb *gorm.DB, tableName string) ([]ColumnInfo, error) {

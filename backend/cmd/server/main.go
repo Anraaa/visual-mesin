@@ -68,6 +68,7 @@ func main() {
 	dbConnHandler := handlers.NewDBConnectionHandler(dbConnSvc)
 	resourceDBHandler := handlers.NewResourceDBConfigHandler(resourceDBConfigSvc)
 	resourceQueryHandler := handlers.NewResourceQueryHandler(resourceQuerySvc)
+	moduleHandler := handlers.NewModuleHandler(resourceQuerySvc)
 
 	ginMode := gin.DebugMode
 	if cfg.AppEnv == "production" {
@@ -79,7 +80,7 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	routes.Setup(r, authHandler, jwtSvc, dbConnHandler, resourceDBHandler, resourceQueryHandler)
+	routes.Setup(r, authHandler, jwtSvc, dbConnHandler, resourceDBHandler, resourceQueryHandler, moduleHandler)
 	_ = roleRepo
 
 	addr := ":" + cfg.ServerPort

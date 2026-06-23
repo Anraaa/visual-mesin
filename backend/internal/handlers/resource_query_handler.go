@@ -16,7 +16,7 @@ func NewResourceQueryHandler(svc *services.ResourceQueryService) *ResourceQueryH
 	return &ResourceQueryHandler{svc: svc}
 }
 
-func (h *ResourceQueryHandler) Query(c *gin.Context) {
+func (h *ResourceQueryHandler) List(c *gin.Context) {
 	resourceName := c.Param("resource")
 	if resourceName == "" {
 		middleware.BadRequestResponse(c, "Resource name is required")
@@ -67,6 +67,83 @@ func (h *ResourceQueryHandler) GetByID(c *gin.Context) {
 	}
 
 	middleware.SuccessResponse(c, "Data retrieved successfully", result)
+}
+
+func (h *ResourceQueryHandler) Create(c *gin.Context) {
+	resourceName := c.Param("resource")
+	if resourceName == "" {
+		middleware.BadRequestResponse(c, "Resource name is required")
+		return
+	}
+
+	var data map[string]interface{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		middleware.BadRequestResponse(c, err.Error())
+		return
+	}
+
+	result, err := h.svc.Create(resourceName, data)
+	if err != nil {
+		middleware.InternalErrorResponse(c, err.Error())
+		return
+	}
+
+	middleware.CreatedResponse(c, "Record created successfully", result)
+}
+
+func (h *ResourceQueryHandler) Update(c *gin.Context) {
+	resourceName := c.Param("resource")
+	if resourceName == "" {
+		middleware.BadRequestResponse(c, "Resource name is required")
+		return
+	}
+
+	idColumn := c.DefaultQuery("id_column", "id")
+	idStr := c.Param("id")
+
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		middleware.BadRequestResponse(c, "Invalid ID")
+		return
+	}
+
+	var data map[string]interface{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		middleware.BadRequestResponse(c, err.Error())
+		return
+	}
+
+	result, err := h.svc.Update(resourceName, idColumn, id, data)
+	if err != nil {
+		middleware.InternalErrorResponse(c, err.Error())
+		return
+	}
+
+	middleware.SuccessResponse(c, "Record updated successfully", result)
+}
+
+func (h *ResourceQueryHandler) Delete(c *gin.Context) {
+	resourceName := c.Param("resource")
+	if resourceName == "" {
+		middleware.BadRequestResponse(c, "Resource name is required")
+		return
+	}
+
+	idColumn := c.DefaultQuery("id_column", "id")
+	idStr := c.Param("id")
+
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		middleware.BadRequestResponse(c, "Invalid ID")
+		return
+	}
+
+	if err := h.svc.Delete(resourceName, idColumn, id); err != nil {
+		middleware.InternalErrorResponse(c, err.Error())
+		return
+	}
+
+	middleware.SuccessResponse(c, "Record deleted successfully", nil)
 }
 
 func (h *ResourceQueryHandler) GetColumns(c *gin.Context) {
