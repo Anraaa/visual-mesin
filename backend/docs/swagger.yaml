@@ -1,0 +1,136 @@
+basePath: /api/v1
+definitions:
+  models.APIResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/models.Meta'
+      success:
+        type: boolean
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.Meta:
+    properties:
+      current_page:
+        type: integer
+      last_page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      user_level:
+        enum:
+        - admin
+        - eng
+        - tech
+        - prod
+        type: string
+      user_name:
+        type: string
+    required:
+    - email
+    - password
+    - user_name
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: dev@visualmesin.com
+    name: Developer
+  description: API for Visual Mesin - Tire Manufacturing Production Monitoring System
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Visual Mesin API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /api/v1/auth/me:
+    get:
+      description: Return authenticated user profile with roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: Register new user
+      tags:
+      - Auth
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

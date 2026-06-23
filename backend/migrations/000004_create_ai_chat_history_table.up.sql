@@ -1,0 +1,20 @@
+CREATE TABLE ai_chat_history (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    session_id VARCHAR(255) NOT NULL,
+    question TEXT NOT NULL,
+    detected_intent VARCHAR(100),
+    generated_sql TEXT,
+    sql_status ENUM('pending','valid','invalid','error') NOT NULL DEFAULT 'pending',
+    ai_response LONGTEXT,
+    status ENUM('queued','processing','completed','failed','rejected') NOT NULL DEFAULT 'queued',
+    rejection_reason VARCHAR(255),
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at),
+    CONSTRAINT fk_chat_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

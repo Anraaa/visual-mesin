@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: vm-mariadb
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: visual_mesin
+      MARIADB_USER: app
+      MARIADB_PASSWORD: apppass
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vm-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  mariadb_data:
+  redis_data:
+  ollama_data:

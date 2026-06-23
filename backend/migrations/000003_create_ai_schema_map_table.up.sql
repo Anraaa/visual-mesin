@@ -1,0 +1,12 @@
+CREATE TABLE ai_schema_map (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    intent_name VARCHAR(100) NOT NULL,
+    keywords JSON NOT NULL,
+    tables_involved JSON NOT NULL,
+    schema_context TEXT,
+    few_shot_examples JSON,
+    description VARCHAR(255),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,21 @@
+# Go
+backend/server
+backend/tmp/
+*.exe
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+*.log

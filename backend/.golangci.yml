@@ -1,0 +1,17 @@
+linters:
+  enable:
+    - gofmt
+    - govet
+    - errcheck
+    - staticcheck
+    - gosimple
+    - ineffassign
+    - unused
+
+linters-settings:
+  errcheck:
+    ignore: fmt:.*,io/ioutil:^Read.*
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
