@@ -8,6 +8,7 @@ import DBConnectionsPage from './pages/DBConnectionsPage'
 import DataProduksiPage from './pages/DataProduksiPage'
 import ResourceDataPage from './pages/ResourceDataPage'
 import ExportPage from './pages/ExportPage'
+import ActivityLogPage from './pages/ActivityLogPage'
 import AIChat from './pages/AIChat'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="data" element={<DataProduksiPage />} />
         <Route path="data/:resource" element={<ResourceDataPage />} />
         <Route path="exports" element={<ExportPage />} />
+        <Route path="admin/activity-logs" element={<ActivityLogPage />} />
         <Route path="analytics/ai-chat" element={<AIChat />} />
       </Route>
     </Routes>

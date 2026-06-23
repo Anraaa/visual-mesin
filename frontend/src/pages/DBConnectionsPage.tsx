@@ -4,7 +4,7 @@ import {
   Card, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Tag, Popconfirm,
   Typography, message, Tooltip,
 } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, ApiOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import api from '../services/api'
 
 const { Title } = Typography

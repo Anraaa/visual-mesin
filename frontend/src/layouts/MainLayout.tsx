@@ -19,7 +19,6 @@ import {
   ExportOutlined,
   BellOutlined,
   HistoryOutlined,
-  CheckOutlined,
 } from '@ant-design/icons'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -186,7 +185,7 @@ export default function MainLayout() {
             <Dropdown menu={userMenu} placement="bottomRight">
               <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar icon={<UserOutlined />} />
-                <span>{user?.user_name || user?.name || 'User'}</span>
+                <span>{user?.name || 'User'}</span>
               </div>
             </Dropdown>
           </Space>

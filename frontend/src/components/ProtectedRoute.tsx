@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children, roles }: Props) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (roles && user && !roles.includes(user.user_level)) {
+  if (roles && user && !roles.includes((user as any).user_level)) {
     return <Navigate to="/403" replace />
   }
 

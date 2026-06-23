@@ -39,7 +39,7 @@ func SeedDefaultUsers(db *gorm.DB) {
 	}
 
 	defaultUsers := []User{
-		{"admin@visualmesin.com", "admin12", "Admin", "admin", "ADM001", "admin"},
+		{"admin@admin.com", "password", "Admin", "admin", "ADM001", "admin"},
 		{"user@visualmesin.com", "user123", "User Produksi", "prod", "PRD001", "user"},
 	}
 

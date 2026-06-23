@@ -86,7 +86,7 @@ frontend/                       # React frontend
 
 | Level | Email | Password |
 |-------|-------|----------|
-| Admin | admin@visualmesin.com | admin12 |
+| Admin | admin@admin.com | password |
 | Produksi | user@visualmesin.com | user123 |
 
 Seeder jalan otomatis via migration (`000010_seed_default_users.up.sql`).

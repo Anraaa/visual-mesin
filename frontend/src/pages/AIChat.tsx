@@ -36,7 +36,7 @@ export default function AIChat() {
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [loadingSessions, setLoadingSessions] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<any>(null)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

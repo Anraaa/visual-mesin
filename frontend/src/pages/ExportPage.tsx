@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Card, Table, Button, Tag, Space, Typography, message, Tooltip,
+  Card, Table, Button, Tag, Typography, message, Tooltip,
 } from 'antd'
 import {
   DownloadOutlined, ReloadOutlined, CheckCircleOutlined,
