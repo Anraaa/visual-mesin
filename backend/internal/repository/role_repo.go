@@ -44,3 +44,14 @@ func (r *RoleRepository) GetPermissions(roleID uint) ([]models.Permission, error
 	`, roleID).Scan(&perms).Error
 	return perms, err
 }
+
+func (r *RoleRepository) Delete(role *models.Role) error {
+	return r.db.Delete(role).Error
+}
+
+func (r *RoleRepository) AssignPermission(roleID, permissionID uint) error {
+	return r.db.Exec(
+		"INSERT INTO role_has_permissions (role_id, permission_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE role_id=role_id",
+		roleID, permissionID,
+	).Error
+}

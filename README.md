@@ -153,7 +153,7 @@ Arsitektur multi-database:
 | 3 | ✅ Selesai | Resource table APIs (Building, Extruder, Curing, dll) |
 | 4 | ⬜ Belum | Frontend foundation (layout, login, theme) |
 | 5 | ⬜ Belum | Frontend feature pages |
-| 6 | ⬜ Belum | AI Chat Assistant |
+| 6 | ✅ Selesai | AI Chat Assistant (Ollama, intent detection, SQL gen, firewall, UI) |
 | 7 | ⬜ Belum | Export system |
 | 8 | ⬜ Belum | WebSocket real-time |
 | 9 | ⬜ Belum | Testing |

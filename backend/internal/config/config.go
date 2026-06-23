@@ -19,6 +19,8 @@ type Config struct {
 	JWTExpiry   string `mapstructure:"JWT_EXPIRY"`
 	OllamaURL   string `mapstructure:"OLLAMA_URL"`
 	OllamaModel string `mapstructure:"OLLAMA_MODEL"`
+	ExportDir   string `mapstructure:"EXPORT_DIR"`
+	RedisURL    string `mapstructure:"REDIS_URL"`
 }
 
 func Load() (*Config, error) {
@@ -45,10 +47,15 @@ func Load() (*Config, error) {
 		JWTExpiry:   "24h",
 		OllamaURL:   "http://localhost:11434",
 		OllamaModel: "llama3",
+		ExportDir:   "./exports",
 	}
 
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
+	}
+
+	if cfg.RedisURL != "" {
+		return cfg, nil
 	}
 
 	return cfg, nil

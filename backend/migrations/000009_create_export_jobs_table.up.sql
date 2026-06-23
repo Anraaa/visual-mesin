@@ -1,0 +1,22 @@
+CREATE TABLE export_jobs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    resource_name VARCHAR(255) NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    status ENUM('queued','processing','completed','failed') NOT NULL DEFAULT 'queued',
+    total_rows BIGINT NOT NULL DEFAULT 0,
+    processed_rows BIGINT NOT NULL DEFAULT 0,
+    file_path VARCHAR(255),
+    file_size BIGINT,
+    format ENUM('csv','xlsx') NOT NULL DEFAULT 'csv',
+    columns JSON,
+    filters JSON,
+    error_message TEXT,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at),
+    CONSTRAINT fk_export_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
