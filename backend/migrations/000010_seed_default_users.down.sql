@@ -1,0 +1,1 @@
+DELETE FROM users WHERE nip IN ('ADM001', 'PRD001');

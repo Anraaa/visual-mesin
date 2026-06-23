@@ -82,6 +82,15 @@ frontend/                       # React frontend
 - Node.js 22+
 - Docker & Docker Compose (MariaDB, Redis, Ollama)
 
+### Akun Default (Seeder)
+
+| Level | Email | Password |
+|-------|-------|----------|
+| Admin | admin@visualmesin.com | admin |
+| Produksi | user@visualmesin.com | user |
+
+Seeder jalan otomatis via migration (`000010_seed_default_users.up.sql`).
+
 ### Development
 
 ```bash
