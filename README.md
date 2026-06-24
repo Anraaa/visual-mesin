@@ -2,7 +2,6 @@
 
 Sistem monitoring dan analisis produksi ban (tire manufacturing) berbasis **Golang + React**, migrasi dari Laravel + Filament.
  
-note: fase 9-10 blm
 
 ## Arsitektur
 
@@ -153,22 +152,6 @@ Backend berjalan di `http://localhost:8080`, Frontend di `http://localhost:5173`
 Arsitektur multi-database:
 - **Local DB**: users, roles, permissions, ai_chat_history, db_connections, dll
 - **Resource DBs**: Data produksi mesin (rtba, rtbc, rteex, curtire, trimming, dll) — bisa di server berbeda, dikonfigurasi dinamis
-
-## Tahapan Migrasi
-
-| Fase | Status | Deskripsi |
-|------|--------|-----------|
-| 0 | ✅ Selesai | Project setup, Docker, migrations |
-| 1 | ✅ Selesai | Auth & RBAC (JWT, login, register) |
-| 2 | ✅ Selesai | Dynamic DB connection manager + CRUD configs |
-| 3 | ✅ Selesai | Resource table APIs (Building, Extruder, Curing, dll) |
-| 4 | ⬜ Belum | Frontend foundation (layout, login, theme) |
-| 5 | ⬜ Belum | Frontend feature pages |
-| 6 | ✅ Selesai | AI Chat Assistant (Ollama, intent detection, SQL gen, firewall, UI) |
-| 7 | ⬜ Belum | Export system |
-| 8 | ⬜ Belum | WebSocket real-time |
-| 9 | ⬜ Belum | Testing |
-| 10 | ⬜ Belum | Deployment |
 
 ## Lisensi
 
