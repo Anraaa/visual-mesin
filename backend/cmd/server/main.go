@@ -25,6 +25,7 @@ import (
 	"github.com/anraaa/visual-mesin/internal/routes"
 	"github.com/anraaa/visual-mesin/internal/services"
 	"github.com/anraaa/visual-mesin/internal/ws"
+	"github.com/anraaa/visual-mesin/pkg/utils"
 
 	_ "github.com/anraaa/visual-mesin/docs"
 )
@@ -51,6 +52,7 @@ func main() {
 		log.Printf("Migration warning: %v", err)
 	}
 
+	db.SeedRolesAndPermissions(gormDB)
 	db.SeedDefaultUsers(gormDB)
 
 	dbMgr := db.NewManager()
@@ -69,8 +71,11 @@ func main() {
 	jwtExpiry, _ := time.ParseDuration(cfg.JWTExpiry)
 	jwtSvc := services.NewJWTService(cfg.JWTSecret, jwtExpiry)
 
+	utils.InitCrypto(cfg.JWTSecret)
+
 	userRepo := repository.NewUserRepository(gormDB)
 	roleRepo := repository.NewRoleRepository(gormDB)
+	permRepo := repository.NewPermissionRepository(gormDB)
 	dbConnRepo := repository.NewDBConnectionRepository(gormDB)
 	resourceDBConfigRepo := repository.NewResourceDBConfigRepository(gormDB)
 	exportJobRepo := repository.NewExportJobRepository(gormDB)
@@ -78,8 +83,11 @@ func main() {
 	authSvc := services.NewAuthService(userRepo, jwtSvc)
 	dbConnSvc := services.NewDBConnectionService(dbConnRepo, dbMgr, gormDB)
 	resourceDBConfigSvc := services.NewResourceDBConfigService(resourceDBConfigRepo, dbMgr, gormDB)
-	resourceQuerySvc := services.NewResourceQueryService(resourceDBConfigRepo, dbMgr)
+	resourceQuerySvc := services.NewResourceQueryService(resourceDBConfigRepo, dbMgr, gormDB)
 	activityLogSvc := services.NewActivityLogService(gormDB)
+
+	resourceGroupRepo := repository.NewResourceGroupRepo(gormDB)
+	dataProduksiConfigHandler := handlers.NewDataProduksiConfigHandler(resourceGroupRepo, resourceDBConfigRepo, gormDB)
 
 	// WebSocket Hub
 	wsHub := ws.NewHub()
@@ -110,13 +118,14 @@ func main() {
 	aiSchemaMapHandler := handlers.NewAiSchemaMapHandler(aiSchemaMapSvc)
 	aiChatHandler := handlers.NewAiChatHandler(chatPipeline, aiChatHistorySvc)
 
-	authHandler := handlers.NewAuthHandler(authSvc)
-	userHandler := handlers.NewUserHandler(userRepo, roleRepo)
-	roleHandler := handlers.NewRoleHandler(roleRepo)
-	dbConnHandler := handlers.NewDBConnectionHandler(dbConnSvc)
-	resourceDBHandler := handlers.NewResourceDBConfigHandler(resourceDBConfigSvc)
-	resourceQueryHandler := handlers.NewResourceQueryHandler(resourceQuerySvc)
-	exportHandler := handlers.NewExportHandler(exportSvc)
+	authHandler := handlers.NewAuthHandler(authSvc, activityLogSvc)
+	userHandler := handlers.NewUserHandler(userRepo, roleRepo, activityLogSvc)
+	roleHandler := handlers.NewRoleHandler(roleRepo, permRepo, activityLogSvc)
+	permHandler := handlers.NewPermissionHandler(permRepo)
+	dbConnHandler := handlers.NewDBConnectionHandler(dbConnSvc, activityLogSvc)
+	resourceDBHandler := handlers.NewResourceDBConfigHandler(resourceDBConfigSvc, activityLogSvc)
+	resourceQueryHandler := handlers.NewResourceQueryHandler(resourceQuerySvc, activityLogSvc)
+	exportHandler := handlers.NewExportHandler(exportSvc, activityLogSvc)
 	activityLogHandler := handlers.NewActivityLogHandler(activityLogSvc)
 
 	ginMode := gin.DebugMode
@@ -130,8 +139,8 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	routes.Setup(r, authHandler, jwtSvc, dbConnHandler, resourceDBHandler, resourceQueryHandler,
-		userHandler, roleHandler, exportHandler, aiSchemaMapHandler, aiChatHandler,
-		wsHub, activityLogHandler, cfg.JWTSecret)
+		userHandler, roleHandler, permHandler, exportHandler, aiSchemaMapHandler, aiChatHandler,
+		wsHub, activityLogHandler, dataProduksiConfigHandler, cfg.JWTSecret)
 
 	addr := ":" + cfg.ServerPort
 	log.Printf("Server starting on %s", addr)

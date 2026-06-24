@@ -1,0 +1,43 @@
+INSERT INTO resource_groups (id, name, color, icon, sort_order) VALUES
+(1, 'Material', '#1677ff', 'ContainerOutlined', 1),
+(2, 'Curing', '#f5222d', 'FireOutlined', 2),
+(3, 'Production Control', '#eb2f96', 'ControlOutlined', 3),
+(4, 'Recipe', '#722ed1', 'BookOutlined', 4),
+(5, 'Building', '#52c41a', 'BuildOutlined', 5),
+(6, 'Trimming', '#13c2c2', 'ScissorOutlined', 6),
+(7, 'rteex1', '#fa8c16', 'ToolOutlined', 7),
+(8, 'rteex2', '#fa541c', 'ThunderboltOutlined', 8),
+(9, 'rteex3', '#2f54eb', 'AlertOutlined', 9)
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO resource_group_items (group_id, resource_name, label, sort_order) VALUES
+(1, 'item_measurement', 'item_measurement', 1),
+(1, 'materials', 'materials', 2),
+(1, 'monitoringtl1', 'monitoringtl1', 3),
+(1, 'rscpc1', 'rscpc1', 4),
+(1, 'rtltl1', 'rtltl1', 5),
+(2, 'rtci1', 'rtci1', 1),
+(2, 'rtctr1', 'rtctr1', 2),
+(3, 'order_report', 'order_report', 1),
+(4, 'recipe1queue', 'recipe1queue', 1),
+(4, 'recipe1', 'recipe1', 2),
+(4, 'recipe_history', 'recipe_history', 3),
+(5, 'rtba1', 'rtba1', 1),
+(5, 'rtba2', 'rtba2', 2),
+(5, 'rtba3', 'rtba3', 3),
+(5, 'rtbc1', 'rtbc1', 4),
+(5, 'rtbc2', 'rtbc2', 5),
+(5, 'rtbc3', 'rtbc3', 6),
+(5, 'rtbc4', 'rtbc4', 7),
+(5, 'rtbe1', 'rtbe1', 8),
+(5, 'rtbe2', 'rtbe2', 9),
+(6, 'trimmings', 'trimmings', 1),
+(7, 'rteex1', 'rteex1', 1),
+(8, 'rteex2', 'rteex2', 1),
+(8, 'recorddatapcs', 'recorddatapcs', 2),
+(8, 'recorddatacyclic', 'recorddatacyclic', 3),
+(9, 'alarm_history', 'alarm_history', 1),
+(9, 'batch_report', 'batch_report', 2),
+(9, 'datalog', 'datalog', 3),
+(9, 'rteex3head', 'rteex3head', 4)
+ON DUPLICATE KEY UPDATE label=VALUES(label);

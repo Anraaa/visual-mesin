@@ -19,7 +19,7 @@ func NewAuthService(userRepo *repository.UserRepository, jwtSvc *JWTService) *Au
 }
 
 func (s *AuthService) Login(req models.LoginRequest) (*models.LoginResponse, error) {
-	user, err := s.userRepo.FindByEmail(req.Email)
+	user, err := s.userRepo.FindByEmailOrNIP(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("email atau password salah")
@@ -37,16 +37,22 @@ func (s *AuthService) Login(req models.LoginRequest) (*models.LoginResponse, err
 	}
 
 	roles, _ := s.userRepo.GetRoles(user.ID)
+	perms, _ := s.userRepo.GetPermissions(user.ID)
+	permNames := make([]string, 0, len(perms))
+	for _, p := range perms {
+		permNames = append(permNames, p.Name)
+	}
 
 	return &models.LoginResponse{
 		Token: token,
 		User: models.UserDTO{
-			ID:        user.ID,
-			NIP:       user.NIP,
-			UserName:  user.UserName,
-			UserLevel: user.UserLevel,
-			Email:     user.Email,
-			Roles:     roles,
+			ID:          user.ID,
+			NIP:         user.NIP,
+			UserName:    user.UserName,
+			UserLevel:   user.UserLevel,
+			Email:       user.Email,
+			Roles:       roles,
+			Permissions: permNames,
 		},
 	}, nil
 }
@@ -57,11 +63,6 @@ func (s *AuthService) Register(req models.RegisterRequest) (*models.User, error)
 		return nil, errors.New("email sudah terdaftar")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-
 	userLevel := req.UserLevel
 	if userLevel == "" {
 		userLevel = "prod"
@@ -70,7 +71,7 @@ func (s *AuthService) Register(req models.RegisterRequest) (*models.User, error)
 	user := &models.User{
 		UserName:  req.UserName,
 		Email:     &req.Email,
-		Password:  string(hashedPassword),
+		Password:  req.Password,
 		UserLevel: userLevel,
 	}
 
@@ -88,13 +89,19 @@ func (s *AuthService) GetProfile(userID uint) (*models.UserDTO, error) {
 	}
 
 	roles, _ := s.userRepo.GetRoles(user.ID)
+	perms, _ := s.userRepo.GetPermissions(user.ID)
+	permNames := make([]string, 0, len(perms))
+	for _, p := range perms {
+		permNames = append(permNames, p.Name)
+	}
 
 	return &models.UserDTO{
-		ID:        user.ID,
-		NIP:       user.NIP,
-		UserName:  user.UserName,
-		UserLevel: user.UserLevel,
-		Email:     user.Email,
-		Roles:     roles,
+		ID:          user.ID,
+		NIP:         user.NIP,
+		UserName:    user.UserName,
+		UserLevel:   user.UserLevel,
+		Email:       user.Email,
+		Roles:       roles,
+		Permissions: permNames,
 	}, nil
 }

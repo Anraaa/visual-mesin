@@ -2,27 +2,24 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type ResourceDBConfig struct {
-	ID                uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	ResourceName      string         `gorm:"type:varchar(255);not null;uniqueIndex" json:"resource_name"`
-	Label             *string        `gorm:"type:varchar(255)" json:"label,omitempty"`
-	Driver            string         `gorm:"type:varchar(20);not null;default:'mariadb'" json:"driver"`
-	Host              string         `gorm:"type:varchar(255);not null" json:"host"`
-	Port              int            `gorm:"type:int;not null;default:3306" json:"port"`
-	DatabaseName      string         `gorm:"type:varchar(255);not null" json:"database_name"`
-	Username          string         `gorm:"type:varchar(255);not null" json:"username"`
-	Password          string         `gorm:"type:text;not null" json:"-"`
-	IsActive          bool           `gorm:"not null;default:true;index:idx_is_active" json:"is_active"`
-	IsLastTestSuccess *bool          `gorm:"type:boolean" json:"is_last_test_success,omitempty"`
-	LastTestedAt      *time.Time     `gorm:"type:timestamp" json:"last_tested_at,omitempty"`
-	LastTestMessage   *string        `gorm:"type:text" json:"last_test_message,omitempty"`
-	CreatedAt         time.Time      `json:"created_at"`
-	UpdatedAt         time.Time      `json:"updated_at"`
-	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
+	ID                uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ResourceName      string     `gorm:"type:varchar(255);not null;uniqueIndex" json:"resource_name"`
+	Label             *string    `gorm:"type:varchar(255)" json:"label,omitempty"`
+	Driver            string     `gorm:"type:varchar(20);not null;default:'mariadb'" json:"driver"`
+	Host              string     `gorm:"type:varchar(255);not null" json:"host"`
+	Port              int        `gorm:"type:int;not null;default:3306" json:"port"`
+	DatabaseName      string     `gorm:"type:varchar(255);not null" json:"database_name"`
+	Username          string     `gorm:"type:varchar(255);not null" json:"username"`
+	Password          string     `gorm:"type:text;not null" json:"-"`
+	IsActive          bool       `gorm:"not null;default:true;index:idx_is_active" json:"is_active"`
+	IsLastTestSuccess *bool      `gorm:"type:boolean" json:"is_last_test_success,omitempty"`
+	LastTestedAt      *time.Time `gorm:"type:timestamp" json:"last_tested_at,omitempty"`
+	LastTestMessage   *string    `gorm:"type:text" json:"last_test_message,omitempty"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
 }
 
 func (ResourceDBConfig) TableName() string {

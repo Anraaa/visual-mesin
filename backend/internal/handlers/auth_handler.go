@@ -10,11 +10,12 @@ import (
 )
 
 type AuthHandler struct {
-	authSvc *services.AuthService
+	authSvc        *services.AuthService
+	activityLogSvc *services.ActivityLogService
 }
 
-func NewAuthHandler(authSvc *services.AuthService) *AuthHandler {
-	return &AuthHandler{authSvc: authSvc}
+func NewAuthHandler(authSvc *services.AuthService, activityLogSvc *services.ActivityLogService) *AuthHandler {
+	return &AuthHandler{authSvc: authSvc, activityLogSvc: activityLogSvc}
 }
 
 // Login godoc
@@ -43,6 +44,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			Message: err.Error(),
 		})
 		return
+	}
+
+	if resp.User.ID > 0 && h.activityLogSvc != nil {
+		h.activityLogSvc.Log(resp.User.ID, "auth", "User logged in", "login", map[string]interface{}{
+			"user_name": resp.User.UserName,
+			"email":     resp.User.Email,
+		})
 	}
 
 	c.JSON(http.StatusOK, models.APIResponse{
@@ -78,6 +86,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			Message: err.Error(),
 		})
 		return
+	}
+
+	if h.activityLogSvc != nil {
+		h.activityLogSvc.Log(user.ID, "auth", "User registered", "register", map[string]interface{}{
+			"user_name": user.UserName,
+			"email":     user.Email,
+		})
 	}
 
 	c.JSON(http.StatusCreated, models.APIResponse{

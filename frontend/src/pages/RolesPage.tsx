@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Card, Table, Button, Modal, Form, Input, Space, Tag, Popconfirm, message, Typography,
+  Card, Table, Button, Modal, Form, Input, Tag, Popconfirm, message, Typography,
 } from 'antd'
-import { PlusOutlined, DeleteOutlined, SafetyOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import api from '../services/api'
 
 const { Title } = Typography
@@ -15,7 +15,7 @@ export default function RolesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['roles'],
-    queryFn: () => api.get('/api/v1/roles').then((r) => r.data),
+    queryFn: () => api.get('/api/v1/roles'),
   })
 
   const createMutation = useMutation({
@@ -73,7 +73,7 @@ export default function RolesPage() {
       <Modal
         title="Tambah Role"
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => { setModalOpen(false); form.resetFields() }}
         onOk={() => form.submit()}
         confirmLoading={createMutation.isPending}
       >

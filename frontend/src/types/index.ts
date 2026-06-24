@@ -8,6 +8,7 @@ export interface User {
   department?: string
   jabatan?: string
   roles?: Role[]
+  permissions?: string[]
 }
 
 export interface Role {
@@ -28,4 +29,29 @@ export interface MenuItem {
   label: string
   children?: MenuItem[]
   roles?: string[]
+}
+
+export interface NavItem {
+  key: string
+  icon: React.ReactNode
+  label: string
+  children?: NavItem[]
+  roles?: string[]
+}
+
+export interface APIResponse<T = unknown> {
+  success: boolean
+  message: string
+  data: T
+  meta?: {
+    current_page: number
+    per_page: number
+    total: number
+    last_page: number
+  }
+}
+
+export interface UserToken {
+  accessToken: string
+  refreshToken?: string
 }

@@ -129,10 +129,21 @@ func (s *ExportService) processJob(jobID uint) {
 		json.Unmarshal([]byte(*job.Columns), &columns)
 	}
 
+	var filters map[string]string
+	if job.Filters != nil && *job.Filters != "" {
+		json.Unmarshal([]byte(*job.Filters), &filters)
+	}
+
 	params := QueryParams{
 		Page:   1,
 		Limit:  1000,
 		Search: "",
+	}
+
+	if filters != nil {
+		params.StartDate = filters["start_date"]
+		params.EndDate = filters["end_date"]
+		params.DateColumn = filters["date_column"]
 	}
 
 	queryResult, err := s.querySvc.QueryResource(job.ResourceName, params)

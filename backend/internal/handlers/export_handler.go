@@ -13,11 +13,12 @@ import (
 )
 
 type ExportHandler struct {
-	svc *services.ExportService
+	svc            *services.ExportService
+	activityLogSvc *services.ActivityLogService
 }
 
-func NewExportHandler(svc *services.ExportService) *ExportHandler {
-	return &ExportHandler{svc: svc}
+func NewExportHandler(svc *services.ExportService, activityLogSvc *services.ActivityLogService) *ExportHandler {
+	return &ExportHandler{svc: svc, activityLogSvc: activityLogSvc}
 }
 
 func (h *ExportHandler) Submit(c *gin.Context) {
@@ -35,6 +36,11 @@ func (h *ExportHandler) Submit(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "export", "Export submitted: "+req.ResourceName, "create", map[string]interface{}{
+		"job_id":        job.ID,
+		"resource_name": req.ResourceName,
+		"format":        req.Format,
+	})
 	c.JSON(http.StatusCreated, models.APIResponse{
 		Success: true,
 		Message: "Export job submitted",

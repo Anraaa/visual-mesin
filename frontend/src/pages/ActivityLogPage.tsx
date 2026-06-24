@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Card, Table, Tag, Typography, Button, Space, Segmented,
 } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
+import { ReloadOutlined, HistoryOutlined } from '@ant-design/icons'
 import api from '../services/api'
 import { useAuthStore } from '../stores/authStore'
 
-const { Title } = Typography
+const { Text } = Typography
 
 const actionColors: Record<string, string> = {
   login: 'blue',
@@ -29,7 +29,7 @@ export default function ActivityLogPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['activity-logs', scope, page],
     queryFn: () =>
-      api.get(endpoint, { params: { page, limit: 50 } }).then((r) => r.data),
+      api.get(endpoint, { params: { page, limit: 50 } }),
   })
 
   const columns = [
@@ -37,15 +37,22 @@ export default function ActivityLogPage() {
     {
       title: 'Action', dataIndex: 'action', key: 'action',
       render: (v: string) => (
-        <Tag color={actionColors[v] || 'default'}>{v}</Tag>
+        <Tag color={actionColors[v] || 'default'} style={{ fontWeight: 600 }}>{v}</Tag>
       ),
     },
-    { title: 'Deskripsi', dataIndex: 'description', key: 'description', ellipsis: true },
-    { title: 'Entity', dataIndex: 'entity_type', key: 'entity_type', render: (v: string) => v ? <Tag>{v}</Tag> : '-' },
+    {
+      title: 'Deskripsi', dataIndex: 'description', key: 'description',
+      ellipsis: true,
+      render: (v: string) => <Text style={{ fontSize: 13 }}>{v}</Text>,
+    },
+    {
+      title: 'Entity', dataIndex: 'entity_type', key: 'entity_type',
+      render: (v: string) => v ? <Tag style={{ fontWeight: 500 }}>{v}</Tag> : '-',
+    },
     { title: 'Entity ID', dataIndex: 'entity_id', key: 'entity_id', width: 80 },
     {
       title: 'User', key: 'user', width: 120,
-      render: (_: any, r: any) => r.user?.name || r.user?.user_name || '-',
+      render: (_: any, r: any) => r.user?.user_name || '-',
     },
     {
       title: 'Waktu', dataIndex: 'created_at', key: 'created_at', width: 180,
@@ -54,22 +61,27 @@ export default function ActivityLogPage() {
   ]
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>Activity Log</Title>
+    <div className="page-enter">
+      <div className="page-header">
+        <div>
+          <h4>Activity Log</h4>
+          <p className="page-subtitle">Riwayat aktivitas pengguna</p>
+        </div>
         <Space>
           <Segmented
             options={[
               { label: 'Semua', value: 'all' },
-              { label: `Saya (${user?.name || ''})`, value: 'me' },
+              { label: `Saya (${user?.user_name || ''})`, value: 'me' },
             ]}
             value={scope}
             onChange={(v) => { setScope(v as string); setPage(1) }}
           />
-          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>Refresh</Button>
+          <Button icon={<ReloadOutlined />} onClick={() => refetch()} style={{ borderRadius: 10 }}>
+            Refresh
+          </Button>
         </Space>
       </div>
-      <Card>
+      <Card className="modern-card" bodyStyle={{ padding: 0 }}>
         <Table
           dataSource={data?.data || []}
           columns={columns}
@@ -82,7 +94,7 @@ export default function ActivityLogPage() {
             total: data?.meta?.total,
             showTotal: (t) => `Total ${t} aktivitas`,
           }}
-          scroll={{ x: 900 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
     </div>

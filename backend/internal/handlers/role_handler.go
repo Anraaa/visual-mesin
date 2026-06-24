@@ -8,14 +8,17 @@ import (
 	"github.com/anraaa/visual-mesin/internal/middleware"
 	"github.com/anraaa/visual-mesin/internal/models"
 	"github.com/anraaa/visual-mesin/internal/repository"
+	"github.com/anraaa/visual-mesin/internal/services"
 )
 
 type RoleHandler struct {
-	roleRepo *repository.RoleRepository
+	roleRepo       *repository.RoleRepository
+	permRepo       *repository.PermissionRepository
+	activityLogSvc *services.ActivityLogService
 }
 
-func NewRoleHandler(roleRepo *repository.RoleRepository) *RoleHandler {
-	return &RoleHandler{roleRepo: roleRepo}
+func NewRoleHandler(roleRepo *repository.RoleRepository, permRepo *repository.PermissionRepository, activityLogSvc *services.ActivityLogService) *RoleHandler {
+	return &RoleHandler{roleRepo: roleRepo, permRepo: permRepo, activityLogSvc: activityLogSvc}
 }
 
 func (h *RoleHandler) List(c *gin.Context) {
@@ -88,6 +91,10 @@ func (h *RoleHandler) Create(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "role", "Role created: "+role.Name, "create", map[string]interface{}{
+		"role_id":   role.ID,
+		"role_name": role.Name,
+	})
 	middleware.CreatedResponse(c, "Role berhasil dibuat", role)
 }
 
@@ -98,12 +105,21 @@ func (h *RoleHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	role := &models.Role{ID: uint(id)}
+	role, err := h.roleRepo.FindByID(uint(id))
+	if err != nil {
+		middleware.NotFoundResponse(c, "Role tidak ditemukan")
+		return
+	}
+
 	if err := h.roleRepo.Delete(role); err != nil {
 		middleware.InternalErrorResponse(c, "Gagal menghapus role")
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "role", "Role deleted: "+role.Name, "delete", map[string]interface{}{
+		"role_id":   role.ID,
+		"role_name": role.Name,
+	})
 	middleware.SuccessResponse(c, "Role berhasil dihapus", nil)
 }
 
@@ -124,10 +140,101 @@ func (h *RoleHandler) AssignPermission(c *gin.Context) {
 		return
 	}
 
+	perm, err := h.permRepo.FindByID(req.PermissionID)
+	if err != nil {
+		middleware.NotFoundResponse(c, "Permission tidak ditemukan")
+		return
+	}
+
 	if err := h.roleRepo.AssignPermission(uint(id), req.PermissionID); err != nil {
 		middleware.InternalErrorResponse(c, "Gagal menetapkan permission")
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "role", "Permission "+perm.Name+" assigned to role", "assign_permission", map[string]interface{}{
+		"role_id":       id,
+		"permission_id": perm.ID,
+		"permission":    perm.Name,
+	})
 	middleware.SuccessResponse(c, "Permission berhasil ditetapkan", nil)
+}
+
+func (h *RoleHandler) RevokePermission(c *gin.Context) {
+	roleID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		middleware.BadRequestResponse(c, "ID role tidak valid")
+		return
+	}
+
+	permID, err := strconv.ParseUint(c.Param("permId"), 10, 32)
+	if err != nil {
+		middleware.BadRequestResponse(c, "ID permission tidak valid")
+		return
+	}
+
+	perm, err := h.permRepo.FindByID(uint(permID))
+	if err == nil {
+		logActivity(c, h.activityLogSvc, "role", "Permission "+perm.Name+" revoked from role", "revoke_permission", map[string]interface{}{
+			"role_id":       roleID,
+			"permission_id": permID,
+			"permission":    perm.Name,
+		})
+	}
+
+	if err := h.roleRepo.RevokePermission(uint(roleID), uint(permID)); err != nil {
+		middleware.InternalErrorResponse(c, "Gagal mencabut permission")
+		return
+	}
+
+	middleware.SuccessResponse(c, "Permission berhasil dicabut", nil)
+}
+
+func (h *RoleHandler) SyncPermissions(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		middleware.BadRequestResponse(c, "ID role tidak valid")
+		return
+	}
+
+	var req struct {
+		Permissions []string `json:"permissions" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		middleware.BadRequestResponse(c, err.Error())
+		return
+	}
+
+	var permIDs []uint
+	for _, name := range req.Permissions {
+		perm, err := h.permRepo.FindByName(name)
+		if err != nil {
+			perm = &models.Permission{
+				Name:      name,
+				GuardName: "web",
+			}
+			if err := h.permRepo.Create(perm); err != nil {
+				middleware.InternalErrorResponse(c, "Gagal membuat permission: "+name)
+				return
+			}
+		}
+		permIDs = append(permIDs, perm.ID)
+	}
+
+	if err := h.roleRepo.RevokeAllPermissions(uint(id)); err != nil {
+		middleware.InternalErrorResponse(c, "Gagal menyinkronisasi permission")
+		return
+	}
+
+	for _, permID := range permIDs {
+		if err := h.roleRepo.AssignPermission(uint(id), permID); err != nil {
+			middleware.InternalErrorResponse(c, "Gagal menetapkan permission")
+			return
+		}
+	}
+
+	logActivity(c, h.activityLogSvc, "role", "Permissions synced for role", "sync_permissions", map[string]interface{}{
+		"role_id":     id,
+		"permissions": req.Permissions,
+	})
+	middleware.SuccessResponse(c, "Permission berhasil disinkronisasi", nil)
 }

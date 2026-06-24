@@ -26,11 +26,7 @@ export interface ChatSession {
 
 export const chatApi = {
   send: async (question: string, sessionID?: string) => {
-    const res = await api.post('/api/v1/ai/chat', {
-      question,
-      session_id: sessionID || '',
-    })
-    return res.data.data as {
+    const res = await api.post<{
       session_id: string
       answer: string
       detected_intent?: string
@@ -38,7 +34,11 @@ export const chatApi = {
       sql_status: string
       query_result?: ChatMessage['query_result']
       latency?: string
-    }
+    }>('/api/v1/ai/chat', {
+      question,
+      session_id: sessionID || '',
+    })
+    return res.data
   },
 
   getHistory: async (sessionID: string, page = 1, limit = 50) => {
@@ -49,8 +49,8 @@ export const chatApi = {
   },
 
   getSessions: async () => {
-    const res = await api.get('/api/v1/ai/chat/sessions')
-    return res.data.data as ChatSession[]
+    const res = await api.get<ChatSession[]>('/api/v1/ai/chat/sessions')
+    return res.data
   },
 
   deleteSession: async (sessionID: string) => {

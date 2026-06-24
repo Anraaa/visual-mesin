@@ -18,11 +18,13 @@ func Setup(
 	resourceQueryHandler *handlers.ResourceQueryHandler,
 	userHandler *handlers.UserHandler,
 	roleHandler *handlers.RoleHandler,
+	permHandler *handlers.PermissionHandler,
 	exportHandler *handlers.ExportHandler,
 	aiSchemaMapHandler *handlers.AiSchemaMapHandler,
 	aiChatHandler *handlers.AiChatHandler,
 	wsHub *ws.Hub,
 	activityLogHandler *handlers.ActivityLogHandler,
+	dataProduksiConfigHandler *handlers.DataProduksiConfigHandler,
 	jwtSecret string,
 ) {
 	r.Use(middleware.CORS())
@@ -47,9 +49,11 @@ func Setup(
 			{
 				users.GET("", userHandler.List)
 				users.GET("/:id", userHandler.GetByID)
+				users.POST("", userHandler.Create)
 				users.PUT("/:id", userHandler.Update)
 				users.DELETE("/:id", userHandler.Delete)
 				users.POST("/:id/assign-role", userHandler.AssignRole)
+				users.PUT("/:id/sync-roles", userHandler.SyncRoles)
 			}
 
 			roles := auth.Group("/roles")
@@ -59,6 +63,15 @@ func Setup(
 				roles.POST("", roleHandler.Create)
 				roles.DELETE("/:id", roleHandler.Delete)
 				roles.POST("/:id/assign-permission", roleHandler.AssignPermission)
+				roles.DELETE("/:id/revoke-permission/:permId", roleHandler.RevokePermission)
+				roles.POST("/:id/sync-permissions", roleHandler.SyncPermissions)
+			}
+
+			permissions := auth.Group("/permissions")
+			{
+				permissions.GET("", permHandler.List)
+				permissions.POST("", permHandler.Create)
+				permissions.DELETE("/:id", permHandler.Delete)
 			}
 
 			dbConns := auth.Group("/db-connections")
@@ -85,11 +98,33 @@ func Setup(
 			resources := auth.Group("/resources")
 			{
 				resources.GET("/:resource", resourceQueryHandler.List)
+				resources.GET("/:resource/stats", resourceQueryHandler.GetStats)
+				resources.GET("/:resource/trend", resourceQueryHandler.GetTrend)
+				resources.GET("/:resource/spc", resourceQueryHandler.GetSPC)
+				resources.GET("/:resource/distribution", resourceQueryHandler.GetDistribution)
+				resources.GET("/:resource/quality-trend", resourceQueryHandler.GetQualityTrend)
 				resources.GET("/:resource/columns", resourceQueryHandler.GetColumns)
 				resources.GET("/:resource/:id", resourceQueryHandler.GetByID)
 				resources.POST("/:resource", resourceQueryHandler.Create)
 				resources.PUT("/:resource/:id", resourceQueryHandler.Update)
 				resources.DELETE("/:resource/:id", resourceQueryHandler.Delete)
+			}
+
+			auth.GET("/resources-judgment/:resource", resourceQueryHandler.GetJudgmentSummary)
+
+			dpConfig := auth.Group("/data-produksi-config")
+			{
+				dpConfig.GET("/groups", dataProduksiConfigHandler.ListGroups)
+				dpConfig.POST("/groups", dataProduksiConfigHandler.CreateGroup)
+				dpConfig.PUT("/groups/:id", dataProduksiConfigHandler.UpdateGroup)
+				dpConfig.DELETE("/groups/:id", dataProduksiConfigHandler.DeleteGroup)
+
+				dpConfig.POST("/items", dataProduksiConfigHandler.CreateItem)
+				dpConfig.PUT("/items/:itemId", dataProduksiConfigHandler.UpdateItem)
+				dpConfig.DELETE("/items/:itemId", dataProduksiConfigHandler.DeleteItem)
+
+				dpConfig.POST("/create-table", dataProduksiConfigHandler.CreateResourceWithTable)
+				dpConfig.GET("/columns/:resource", dataProduksiConfigHandler.GetColumnDefs)
 			}
 
 			exports := auth.Group("/exports")

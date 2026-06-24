@@ -10,11 +10,12 @@ import (
 )
 
 type ResourceDBConfigHandler struct {
-	svc *services.ResourceDBConfigService
+	svc            *services.ResourceDBConfigService
+	activityLogSvc *services.ActivityLogService
 }
 
-func NewResourceDBConfigHandler(svc *services.ResourceDBConfigService) *ResourceDBConfigHandler {
-	return &ResourceDBConfigHandler{svc: svc}
+func NewResourceDBConfigHandler(svc *services.ResourceDBConfigService, activityLogSvc *services.ActivityLogService) *ResourceDBConfigHandler {
+	return &ResourceDBConfigHandler{svc: svc, activityLogSvc: activityLogSvc}
 }
 
 func (h *ResourceDBConfigHandler) List(c *gin.Context) {
@@ -59,6 +60,10 @@ func (h *ResourceDBConfigHandler) Create(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "resource_db_config", "Resource DB config created: "+req.ResourceName, "create", map[string]interface{}{
+		"config_id":     cfg.ID,
+		"resource_name": req.ResourceName,
+	})
 	middleware.CreatedResponse(c, "Resource database config created successfully", cfg)
 }
 
@@ -81,6 +86,10 @@ func (h *ResourceDBConfigHandler) Update(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "resource_db_config", "Resource DB config updated: "+cfg.ResourceName, "update", map[string]interface{}{
+		"config_id":     cfg.ID,
+		"resource_name": cfg.ResourceName,
+	})
 	middleware.SuccessResponse(c, "Resource database config updated successfully", cfg)
 }
 
@@ -89,6 +98,14 @@ func (h *ResourceDBConfigHandler) Delete(c *gin.Context) {
 	if err != nil {
 		middleware.BadRequestResponse(c, "Invalid ID")
 		return
+	}
+
+	cfg, err := h.svc.GetByID(uint(id))
+	if err == nil {
+		logActivity(c, h.activityLogSvc, "resource_db_config", "Resource DB config deleted: "+cfg.ResourceName, "delete", map[string]interface{}{
+			"config_id":     id,
+			"resource_name": cfg.ResourceName,
+		})
 	}
 
 	if err := h.svc.Delete(uint(id)); err != nil {
@@ -111,5 +128,8 @@ func (h *ResourceDBConfigHandler) TestConnection(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "resource_db_config", "Resource DB connection tested", "test_connection", map[string]interface{}{
+		"config_id": id,
+	})
 	middleware.SuccessResponse(c, "Connection test successful", nil)
 }

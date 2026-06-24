@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"strings"
+
 	"github.com/anraaa/visual-mesin/internal/models"
 	"gorm.io/gorm"
 )
@@ -20,6 +22,51 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) FindByNIP(nip string) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("nip = ?", nip).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) FindByEmailOrNIP(identifier string) (*models.User, error) {
+	var user models.User
+
+	err := r.db.Where("email = ? OR nip = ?", identifier, identifier).First(&user).Error
+	if err == nil {
+		return &user, nil
+	}
+
+	if !strings.Contains(identifier, "@") && identifier != "" {
+		normalized := strings.ToLower(identifier)
+
+		if normalized != identifier {
+			err = r.db.Where("nip = ?", normalized).First(&user).Error
+			if err == nil {
+				return &user, nil
+			}
+		}
+
+		if strings.HasPrefix(normalized, "m") && len(normalized) > 1 {
+			err = r.db.Where("nip = ?", normalized[1:]).First(&user).Error
+			if err == nil {
+				return &user, nil
+			}
+		}
+
+		if !strings.HasPrefix(normalized, "m") {
+			err = r.db.Where("nip = ?", "m"+normalized).First(&user).Error
+			if err == nil {
+				return &user, nil
+			}
+		}
+	}
+
+	return nil, gorm.ErrRecordNotFound
 }
 
 func (r *UserRepository) FindByID(id uint) (*models.User, error) {
@@ -87,5 +134,12 @@ func (r *UserRepository) AssignRole(userID, roleID uint) error {
 	return r.db.Exec(
 		"INSERT INTO model_has_roles (role_id, model_type, model_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE role_id=role_id",
 		roleID, "App\\Models\\User", userID,
+	).Error
+}
+
+func (r *UserRepository) RevokeAllRoles(userID uint) error {
+	return r.db.Exec(
+		"DELETE FROM model_has_roles WHERE model_type = ? AND model_id = ?",
+		"App\\Models\\User", userID,
 	).Error
 }

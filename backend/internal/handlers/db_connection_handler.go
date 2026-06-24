@@ -11,11 +11,12 @@ import (
 )
 
 type DBConnectionHandler struct {
-	svc *services.DBConnectionService
+	svc            *services.DBConnectionService
+	activityLogSvc *services.ActivityLogService
 }
 
-func NewDBConnectionHandler(svc *services.DBConnectionService) *DBConnectionHandler {
-	return &DBConnectionHandler{svc: svc}
+func NewDBConnectionHandler(svc *services.DBConnectionService, activityLogSvc *services.ActivityLogService) *DBConnectionHandler {
+	return &DBConnectionHandler{svc: svc, activityLogSvc: activityLogSvc}
 }
 
 func (h *DBConnectionHandler) List(c *gin.Context) {
@@ -60,6 +61,12 @@ func (h *DBConnectionHandler) Create(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "db_connection", "DB connection created: "+req.Name, "create", map[string]interface{}{
+		"connection_id":   conn.ID,
+		"connection_name": req.Name,
+		"host":            req.Host,
+		"database_name":   req.DatabaseName,
+	})
 	middleware.CreatedResponse(c, "Database connection created successfully", conn)
 }
 
@@ -82,6 +89,10 @@ func (h *DBConnectionHandler) Update(c *gin.Context) {
 		return
 	}
 
+	logActivity(c, h.activityLogSvc, "db_connection", "DB connection updated: "+conn.Name, "update", map[string]interface{}{
+		"connection_id":   conn.ID,
+		"connection_name": conn.Name,
+	})
 	middleware.SuccessResponse(c, "Database connection updated successfully", conn)
 }
 
@@ -90,6 +101,14 @@ func (h *DBConnectionHandler) Delete(c *gin.Context) {
 	if err != nil {
 		middleware.BadRequestResponse(c, "Invalid ID")
 		return
+	}
+
+	conn, err := h.svc.GetByID(uint(id))
+	if err == nil {
+		logActivity(c, h.activityLogSvc, "db_connection", "DB connection deleted: "+conn.Name, "delete", map[string]interface{}{
+			"connection_id":   id,
+			"connection_name": conn.Name,
+		})
 	}
 
 	if err := h.svc.Delete(uint(id)); err != nil {

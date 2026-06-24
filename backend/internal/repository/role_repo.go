@@ -49,9 +49,20 @@ func (r *RoleRepository) Delete(role *models.Role) error {
 	return r.db.Delete(role).Error
 }
 
+func (r *RoleRepository) RevokeAllPermissions(roleID uint) error {
+	return r.db.Exec("DELETE FROM role_has_permissions WHERE role_id = ?", roleID).Error
+}
+
 func (r *RoleRepository) AssignPermission(roleID, permissionID uint) error {
 	return r.db.Exec(
 		"INSERT INTO role_has_permissions (role_id, permission_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE role_id=role_id",
+		roleID, permissionID,
+	).Error
+}
+
+func (r *RoleRepository) RevokePermission(roleID, permissionID uint) error {
+	return r.db.Exec(
+		"DELETE FROM role_has_permissions WHERE role_id = ? AND permission_id = ?",
 		roleID, permissionID,
 	).Error
 }

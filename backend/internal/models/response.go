@@ -15,7 +15,7 @@ type Meta struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
+	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
@@ -25,12 +25,13 @@ type LoginResponse struct {
 }
 
 type UserDTO struct {
-	ID        uint    `json:"id"`
-	NIP       *string `json:"nip"`
-	UserName  string  `json:"user_name"`
-	UserLevel string  `json:"user_level"`
-	Email     *string `json:"email"`
-	Roles     []Role  `json:"roles,omitempty"`
+	ID          uint     `json:"id"`
+	NIP         *string  `json:"nip"`
+	UserName    string   `json:"user_name"`
+	UserLevel   string   `json:"user_level"`
+	Email       *string  `json:"email"`
+	Roles       []Role   `json:"roles,omitempty"`
+	Permissions []string `json:"permissions,omitempty"`
 }
 
 type RegisterRequest struct {

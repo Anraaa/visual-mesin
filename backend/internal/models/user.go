@@ -8,7 +8,7 @@ import (
 
 type User struct {
 	ID              uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	NIP             *string    `gorm:"type:varchar(50);uniqueIndex" json:"nip"`
+	NIP             *string    `gorm:"type:varchar(50);uniqueIndex;column:nip" json:"nip"`
 	UserID          *string    `gorm:"type:varchar(100);uniqueIndex" json:"user_id"`
 	UserName        string     `gorm:"type:varchar(100);not null" json:"user_name"`
 	UserLevel       string     `gorm:"type:enum('admin','eng','tech','prod');not null;default:'prod'" json:"user_level"`

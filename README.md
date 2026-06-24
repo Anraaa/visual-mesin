@@ -1,6 +1,8 @@
 # Visual Mesin
 
 Sistem monitoring dan analisis produksi ban (tire manufacturing) berbasis **Golang + React**, migrasi dari Laravel + Filament.
+ 
+note: fase 9-10 blm
 
 ## Arsitektur
 

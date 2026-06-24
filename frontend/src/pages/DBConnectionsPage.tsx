@@ -4,10 +4,12 @@ import {
   Card, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Tag, Popconfirm,
   Typography, message, Tooltip,
 } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import {
+  PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, DatabaseOutlined,
+} from '@ant-design/icons'
 import api from '../services/api'
 
-const { Title } = Typography
+const { Text } = Typography
 
 export default function DBConnectionsPage() {
   const [modalOpen, setModalOpen] = useState(false)
@@ -17,7 +19,7 @@ export default function DBConnectionsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['db-connections'],
-    queryFn: () => api.get('/api/v1/db-connections').then((r) => r.data),
+    queryFn: () => api.get('/api/v1/db-connections'),
   })
 
   const createMutation = useMutation({
@@ -75,10 +77,10 @@ export default function DBConnectionsPage() {
     { title: 'Host', dataIndex: 'host', key: 'host' },
     { title: 'Port', dataIndex: 'port', key: 'port', width: 80 },
     { title: 'Database', dataIndex: 'database_name', key: 'database_name' },
-    { title: 'Driver', dataIndex: 'driver', key: 'driver', render: (v: string) => <Tag>{v}</Tag> },
+    { title: 'Driver', dataIndex: 'driver', key: 'driver', render: (v: string) => <Tag style={{ fontWeight: 600 }}>{v}</Tag> },
     {
       title: 'Status', dataIndex: 'is_active', key: 'is_active',
-      render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? 'Aktif' : 'Nonaktif'}</Tag>,
+      render: (v: boolean) => <Tag color={v ? 'green' : 'red'} style={{ fontWeight: 600 }}>{v ? 'Aktif' : 'Nonaktif'}</Tag>,
     },
     {
       title: 'Test', key: 'test',
@@ -89,6 +91,7 @@ export default function DBConnectionsPage() {
             icon={<CheckCircleOutlined />}
             loading={testMutation.isPending}
             onClick={() => testMutation.mutate(record.id)}
+            style={{ borderRadius: 8, fontSize: 12 }}
           >
             Test
           </Button>
@@ -99,9 +102,9 @@ export default function DBConnectionsPage() {
       title: 'Aksi', key: 'action',
       render: (_: any, record: any) => (
         <Space>
-          <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+          <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(record)} style={{ borderRadius: 8 }} />
           <Popconfirm title="Hapus koneksi?" onConfirm={() => deleteMutation.mutate(record.id)}>
-            <Button size="small" danger icon={<DeleteOutlined />} />
+            <Button size="small" danger icon={<DeleteOutlined />} style={{ borderRadius: 8 }} />
           </Popconfirm>
         </Space>
       ),
@@ -109,14 +112,17 @@ export default function DBConnectionsPage() {
   ]
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>Database Connections</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+    <div className="page-enter">
+      <div className="page-header">
+        <div>
+          <h4>Database Connections</h4>
+          <p className="page-subtitle">Kelola koneksi ke database resource produksi</p>
+        </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)} className="btn-glow" style={{ borderRadius: 10 }}>
           Tambah Koneksi
         </Button>
       </div>
-      <Card>
+      <Card className="modern-card" bodyStyle={{ padding: 0 }}>
         <Table
           dataSource={data?.data || []}
           columns={columns}
@@ -127,12 +133,19 @@ export default function DBConnectionsPage() {
       </Card>
 
       <Modal
-        title={editing ? 'Edit Koneksi Database' : 'Tambah Koneksi Database'}
+        title={
+          <Space>
+            <DatabaseOutlined style={{ color: 'var(--primary-color)' }} />
+            <span style={{ fontWeight: 600 }}>{editing ? 'Edit Koneksi Database' : 'Tambah Koneksi Database'}</span>
+          </Space>
+        }
         open={modalOpen}
         onCancel={closeModal}
         onOk={() => form.submit()}
         confirmLoading={createMutation.isPending || updateMutation.isPending}
         width={600}
+        okText={editing ? 'Simpan' : 'Tambah'}
+        cancelText="Batal"
       >
         <Form
           form={form}
