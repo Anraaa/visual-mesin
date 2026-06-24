@@ -302,10 +302,9 @@ export default function MainLayout() {
 
       <Drawer
         placement="left"
-        width={280}
         open={isMobile && mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        styles={{ body: { padding: 0, background: 'var(--sidebar-bg)' } }}
+        styles={{ wrapper: { width: 280 }, body: { padding: 0, background: 'var(--sidebar-bg)' } }}
         closable={false}
       >
         <div style={{ background: 'var(--sidebar-bg)', height: '100%' }}>
@@ -482,7 +481,7 @@ export default function MainLayout() {
                 />
               </Tooltip>
             )}
-            <Dropdown menu={userMenu} placement="bottomRight" overlayStyle={{ minWidth: 200 }}>
+            <Dropdown menu={userMenu} placement="bottomRight" styles={{ root: { minWidth: 200 } }}>
               <div style={{
                 cursor: 'pointer',
                 display: 'flex',
@@ -566,8 +565,7 @@ export default function MainLayout() {
         placement="right"
         onClose={() => setSettingsOpen(false)}
         open={settingsOpen}
-        width={340}
-        styles={{ body: { padding: 24 } }}
+        styles={{ wrapper: { width: 340 }, body: { padding: 24 } }}
       >
         <Divider orientation="left" plain style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
           Mode Tampilan

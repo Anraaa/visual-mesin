@@ -620,7 +620,7 @@ export default function ResourceDataPage() {
                   ? 'gradient-red' : 'gradient-orange' },
             ].map((card, i) => (
               <Col xs={24} sm={12} lg={6} key={i}>
-                <Card className={`stat-card ${card.gradient}`} bordered={false}>
+                <Card className={`stat-card ${card.gradient}`} variant="borderless">
                   <div style={{ position: 'relative', zIndex: 1 }}>
                     <div className="stat-value">{card.value}</div>
                     <div className="stat-label">{card.label}</div>
@@ -776,7 +776,7 @@ export default function ResourceDataPage() {
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           {statCards.map((card, i) => (
             <Col xs={24} sm={12} lg={6} key={i}>
-              <Card className={`stat-card ${card.gradient}`} bordered={false}>
+              <Card className={`stat-card ${card.gradient}`} variant="borderless">
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <div className="stat-value">{card.value}</div>
                   <div className="stat-label">{card.label}</div>

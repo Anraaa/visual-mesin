@@ -4,7 +4,7 @@ import {
   RiseOutlined, HddOutlined,
 } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import api from '../services/api'
 
 const { Title, Text } = Typography
@@ -76,7 +76,7 @@ export default function Dashboard() {
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           {statCards.map((card, i) => (
             <Col xs={24} sm={12} lg={6} key={i}>
-              <Card className={`stat-card ${card.gradient}`} bordered={false}>
+              <Card className={`stat-card ${card.gradient}`} variant="borderless">
                 <div className="stat-bg-icon">{card.icon}</div>
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <div className="stat-value">
