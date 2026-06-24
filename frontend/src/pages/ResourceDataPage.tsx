@@ -180,6 +180,10 @@ function getWidgetConfig(resource?: string): ResourceWidgetConfig {
     return { sortCol: 'recid', trendCol: 'Duration_TrimingProcess', trendTimeCol: 'Start_Triming', trendTitle: 'Duration Trend', distCol: 'Trimming_MachineNumber', distTitle: 'Machine', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: 'Tire_Code', extraDistTitle: 'Tire Code', durationCol: 'Duration_TrimingProcess' }
   }
 
+  if (resource === 'materials') {
+    return { sortCol: 'recid', trendCol: 'qty', trendTimeCol: 'txndate', trendTitle: 'Pemakaian Material', distCol: 'item', distTitle: 'Material', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: 'mcn', extraDistTitle: 'Mesin' }
+  }
+
   const idCol = resource === 'alarm_history' ? 'id' : 'recid'
   return { sortCol: idCol, trendCol: null, trendTimeCol: null, distCol: null, distTitle: 'Category', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
 }
