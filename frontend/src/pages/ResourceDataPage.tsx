@@ -3,12 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Card, Table, Input, Select, Button, Space, Typography, Tag, Drawer, Descriptions, Spin,
-  Modal, Transfer, message, Tabs, Row, Col, DatePicker,
+  Modal, Transfer, message, Result, Tabs, Row, Col, DatePicker,
 } from 'antd'
 import dayjs from 'dayjs'
 import {
   ArrowLeftOutlined, SearchOutlined, ReloadOutlined, EyeOutlined,
-  DownloadOutlined, TableOutlined, DashboardOutlined,
+  DownloadOutlined, TableOutlined, DashboardOutlined, HomeOutlined, RiseOutlined,
 } from '@ant-design/icons'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -138,6 +138,13 @@ interface ResourceWidgetConfig {
 }
 
 function getWidgetConfig(resource?: string): ResourceWidgetConfig {
+  if (resource === 'recorddatacyclic') {
+    return { sortCol: 'id', trendCol: 'aberat_control', trendTimeCol: 'timestamp_record', trendTitle: 'Berat Aktual', distCol: 'code_recipe', distTitle: 'Recipe', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+  if (resource === 'recorddatapcs') {
+    return { sortCol: 'id', trendCol: 'aberat_finish', trendTimeCol: 'waktu', trendTitle: 'Berat Finish', distCol: 'recipe_code', distTitle: 'Recipe', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
   const group = getResourceGroup(resource)
 
   if (group === 'extruder-cyclic' || group === 'extruder-pcs') {
@@ -180,12 +187,43 @@ function getWidgetConfig(resource?: string): ResourceWidgetConfig {
     return { sortCol: 'recid', trendCol: 'Duration_TrimingProcess', trendTimeCol: 'Start_Triming', trendTitle: 'Duration Trend', distCol: 'Trimming_MachineNumber', distTitle: 'Machine', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: 'Tire_Code', extraDistTitle: 'Tire Code', durationCol: 'Duration_TrimingProcess' }
   }
 
-  if (resource === 'materials') {
+  if (resource === 'material') {
     return { sortCol: 'recid', trendCol: 'qty', trendTimeCol: 'txndate', trendTitle: 'Pemakaian Material', distCol: 'item', distTitle: 'Material', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: 'mcn', extraDistTitle: 'Mesin' }
   }
 
-  const idCol = resource === 'alarm_history' ? 'id' : 'recid'
-  return { sortCol: idCol, trendCol: null, trendTimeCol: null, distCol: null, distTitle: 'Category', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  if (resource === 'monitoringtl1') {
+    return { sortCol: 'id', trendCol: 'TotalOutput', trendTimeCol: 'date_shift', trendTitle: 'Total Output Trend', distCol: 'codesize', distTitle: 'Code Size', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: null, extraDistTitle: '' }
+  }
+
+  if (resource === 'rsc_pc1') {
+    return { sortCol: 'id', trendCol: 'totalseleksi', trendTimeCol: 'starttime', trendTitle: 'Total Seleksi', distCol: 'machine', distTitle: 'Mesin', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: 'code', extraDistTitle: 'Code' }
+  }
+
+  if (resource === 'rtltl1') {
+    return { sortCol: 'id', trendCol: 'TotalProd', trendTimeCol: 'date_shift', trendTitle: 'Total Produksi', distCol: 'mesin', distTitle: 'Mesin', hasCT: false, statOKKey: 'TotalOK', statNGKey: 'TotalReject', statTotKey: 'TotalProd', extraDistCol: 'size', extraDistTitle: 'Size' }
+  }
+
+  if (resource === 'order_report') {
+    return { sortCol: 'id', trendCol: 'act_qty', trendTimeCol: 'time_create', trendTitle: 'Qty Aktual', distCol: 'shift', distTitle: 'Shift', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  if (resource === 'recipe1queue') {
+    return { sortCol: 'id', trendCol: 'qty', trendTimeCol: 'time_create', trendTitle: 'Qty Antrian', distCol: 'shift', distTitle: 'Shift', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  if (resource === 'recipe1') {
+    return { sortCol: 'id', trendCol: null, trendTimeCol: null, distCol: 'size', distTitle: 'Size', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  if (resource === 'batch_report') {
+    return { sortCol: 'id', trendCol: 'act_weightscale', trendTimeCol: 'timestamp', trendTitle: 'Weight Scale', distCol: 'recipe', distTitle: 'Recipe', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  if (resource === 'alarm_history') {
+    return { sortCol: 'id', trendCol: null, trendTimeCol: null, distCol: 'source', distTitle: 'Source', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  return { sortCol: 'recid', trendCol: null, trendTimeCol: null, distCol: null, distTitle: 'Category', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
 }
 
 function getDateColumn(widgetCfg: ResourceWidgetConfig): string {
@@ -250,6 +288,16 @@ export default function ResourceDataPage() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const queryClient = useQueryClient()
 
+  const { data: groupsData, isLoading: groupsLoading } = useQuery({
+    queryKey: ['resource-groups-validate'],
+    queryFn: () => api.get('/api/v1/data-produksi-config/groups'),
+  })
+
+  const validResources = useMemo(() => {
+    const groups = groupsData?.data || []
+    return groups.flatMap((g: any) => (g.items || []).map((i: any) => i.resource_name))
+  }, [groupsData])
+
   const group = getResourceGroup(resource)
   const spcCfg = getSPCConfig(resource)
   const widgetCfg = getWidgetConfig(resource)
@@ -257,6 +305,24 @@ export default function ResourceDataPage() {
   const dateColumn = getDateColumn(widgetCfg)
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null)
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null)
+
+  const applyDatePreset = (preset: 'today' | 'week' | 'month') => {
+    const now = dayjs()
+    switch (preset) {
+      case 'today':
+        setStartDate(now.startOf('day'))
+        setEndDate(now.endOf('day'))
+        break
+      case 'week':
+        setStartDate(now.startOf('week'))
+        setEndDate(now.endOf('week'))
+        break
+      case 'month':
+        setStartDate(now.startOf('month'))
+        setEndDate(now.endOf('month'))
+        break
+    }
+  }
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['resource-data', resource, page, search, searchBy, sortBy, sortDir, startDate, endDate, dateColumn],
@@ -276,7 +342,7 @@ export default function ResourceDataPage() {
     enabled: activeTab === 'table',
   })
 
-  const { data: statsData, isLoading: statsLoading } = useQuery({
+  const { data: statsData, isLoading: statsLoading, dataUpdatedAt: statsUpdatedAt } = useQuery({
     queryKey: ['resource-stats', resource, widgetCfg.durationCol],
     queryFn: () => {
       const params: Record<string, any> = {}
@@ -380,6 +446,85 @@ export default function ResourceDataPage() {
     },
   })
 
+  const ctSummary = useMemo(() => {
+    const summary = stats?.ct_summary || {}
+    return [
+      { name: 'PUD_CT', value: summary.PUD_CT || 0 },
+      { name: 'BTD_CT', value: summary.BTD_CT || 0 },
+      { name: 'BDD_CT', value: summary.BDD_CT || 0 },
+    ]
+  }, [stats])
+
+  const recentCols = useMemo(() => {
+    if (recentRows.length === 0) return []
+    const keys = Object.keys(recentRows[0]).slice(0, 8)
+    return keys.map(key => ({
+      title: key,
+      dataIndex: key,
+      key,
+      ellipsis: true,
+      width: key === 'recid' || key === 'id' ? 70 : undefined,
+      render: (v: any) => typeof v === 'number' ? (v % 1 === 0 ? v : v.toFixed?.(2) ?? v) : v,
+    }))
+  }, [recentRows])
+
+  const statCards = useMemo(() => {
+    const cards = [
+      { label: 'Total Records', value: stats?.total_records ?? '-', gradient: 'gradient-blue' as const },
+    ]
+    if (widgetCfg.hasCT) {
+      const summary = stats?.ct_summary || {}
+      cards.push(
+        { label: 'Avg Cycle Time', value: summary.PUD_CT != null ? `${Number(summary.PUD_CT).toFixed(1)}s` : '-', gradient: 'gradient-purple' as const },
+      )
+    }
+    if (widgetCfg.durationCol) {
+      const summary = stats?.ct_summary || {}
+      if (summary.duration_avg != null && summary.duration_avg !== 0) {
+        cards.push({ label: 'Avg Duration', value: `${Number(summary.duration_avg).toFixed(1)}s`, gradient: 'gradient-purple' as const })
+        cards.push({ label: 'Min Duration', value: `${Number(summary.duration_min).toFixed(1)}s`, gradient: 'gradient-green' as const })
+        cards.push({ label: 'Max Duration', value: `${Number(summary.duration_max).toFixed(1)}s`, gradient: 'gradient-red' as const })
+      }
+    }
+    if (!isBuilding && !widgetCfg.durationCol) {
+      const summary = stats?.ct_summary || {}
+      const okVal = getStatValue(summary, ['prod_OK', 'OK', 'ok'])
+      const ngVal = getStatValue(summary, ['prod_NG', 'NG', 'ng'])
+      const totVal = getStatValue(summary, ['prod_Tot', 'Total', 'total'])
+      if (okVal != null) cards.push({ label: 'Total OK', value: String(okVal), gradient: 'gradient-green' as const })
+      if (ngVal != null) cards.push({ label: 'Total NG', value: String(ngVal), gradient: 'gradient-red' as const })
+      if (totVal != null) cards.push({ label: 'Total Prod', value: String(totVal), gradient: 'gradient-orange' as const })
+    }
+    return cards
+  }, [stats, isBuilding, widgetCfg.hasCT, widgetCfg.durationCol])
+
+  if (groupsLoading) {
+    return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>
+  }
+  if (!validResources.includes(resource)) {
+    return (
+      <div className="page-enter" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <Result
+          status="404"
+          title={<span style={{ fontSize: 72, fontWeight: 800, color: 'var(--primary-color)', lineHeight: 1 }}>404</span>}
+          subTitle="Resource tidak ditemukan"
+          extra={
+            <Button
+              type="primary"
+              icon={<HomeOutlined />}
+              onClick={() => navigate('/dashboard')}
+              size="large"
+              className="btn-glow"
+              style={{ borderRadius: 10, height: 44, paddingInline: 28 }}
+            >
+              Kembali ke Dashboard
+            </Button>
+          }
+        />
+      </div>
+    )
+  }
+
   const dataColumns = allColumns.slice(0, 10).map((key) => ({
     title: key,
     dataIndex: key,
@@ -432,58 +577,6 @@ export default function ResourceDataPage() {
       filters: Object.keys(filters).length > 0 ? filters : undefined,
     })
   }
-
-  const ctSummary = useMemo(() => {
-    const summary = stats?.ct_summary || {}
-    return [
-      { name: 'PUD_CT', value: summary.PUD_CT || 0 },
-      { name: 'BTD_CT', value: summary.BTD_CT || 0 },
-      { name: 'BDD_CT', value: summary.BDD_CT || 0 },
-    ]
-  }, [stats])
-
-  const recentCols = useMemo(() => {
-    if (recentRows.length === 0) return []
-    const keys = Object.keys(recentRows[0]).slice(0, 8)
-    return keys.map(key => ({
-      title: key,
-      dataIndex: key,
-      key,
-      ellipsis: true,
-      width: key === 'recid' || key === 'id' ? 70 : undefined,
-      render: (v: any) => typeof v === 'number' ? (v % 1 === 0 ? v : v.toFixed?.(2) ?? v) : v,
-    }))
-  }, [recentRows])
-
-  const statCards = useMemo(() => {
-    const cards = [
-      { label: 'Total Records', value: stats?.total_records ?? '-', gradient: 'gradient-blue' as const },
-    ]
-    if (widgetCfg.hasCT) {
-      const summary = stats?.ct_summary || {}
-      cards.push(
-        { label: 'Avg Cycle Time', value: summary.PUD_CT != null ? `${Number(summary.PUD_CT).toFixed(1)}s` : '-', gradient: 'gradient-purple' as const },
-      )
-    }
-    if (widgetCfg.durationCol) {
-      const summary = stats?.ct_summary || {}
-      if (summary.duration_avg != null && summary.duration_avg !== 0) {
-        cards.push({ label: 'Avg Duration', value: `${Number(summary.duration_avg).toFixed(1)}s`, gradient: 'gradient-purple' as const })
-        cards.push({ label: 'Min Duration', value: `${Number(summary.duration_min).toFixed(1)}s`, gradient: 'gradient-green' as const })
-        cards.push({ label: 'Max Duration', value: `${Number(summary.duration_max).toFixed(1)}s`, gradient: 'gradient-red' as const })
-      }
-    }
-    if (!isBuilding && !widgetCfg.durationCol) {
-      const summary = stats?.ct_summary || {}
-      const okVal = getStatValue(summary, ['prod_OK', 'OK', 'ok'])
-      const ngVal = getStatValue(summary, ['prod_NG', 'NG', 'ng'])
-      const totVal = getStatValue(summary, ['prod_Tot', 'Total', 'total'])
-      if (okVal != null) cards.push({ label: 'Total OK', value: String(okVal), gradient: 'gradient-green' as const })
-      if (ngVal != null) cards.push({ label: 'Total NG', value: String(ngVal), gradient: 'gradient-red' as const })
-      if (totVal != null) cards.push({ label: 'Total Prod', value: String(totVal), gradient: 'gradient-orange' as const })
-    }
-    return cards
-  }, [stats, isBuilding, widgetCfg.hasCT, widgetCfg.durationCol])
 
   const renderDashboard = () => {
     if (spcCfg) {
@@ -993,6 +1086,8 @@ export default function ResourceDataPage() {
         display: 'flex', alignItems: 'center', gap: 16,
         marginBottom: 20, paddingBottom: 16,
         borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap',
+        position: 'sticky', top: 0, zIndex: 10,
+        background: 'var(--bg-layout)', paddingTop: 16,
       }}>
         <Button
           icon={<ArrowLeftOutlined />}
@@ -1020,6 +1115,10 @@ export default function ResourceDataPage() {
         <Tag color="blue" style={{ fontSize: 13, padding: '4px 14px', fontWeight: 600 }}>
           {stats?.total_records ?? '-'} records
         </Tag>
+        <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+          <RiseOutlined style={{ marginRight: 4 }} />
+          {statsUpdatedAt ? `Auto-refresh ${dayjs(statsUpdatedAt).format('HH:mm:ss')}` : 'Memuat...'}
+        </Typography.Text>
         <Button
           icon={<DownloadOutlined />}
           onClick={() => { setSelectedColumns(allColumns); setExportModalOpen(true) }}
@@ -1050,7 +1149,7 @@ export default function ResourceDataPage() {
             label: <span><TableOutlined style={{ marginRight: 6 }} />Data Table</span>,
             children: (
               <Card className="modern-card" bodyStyle={{ padding: 0 }}>
-                <div style={{
+                <div className="resource-table-toolbar" style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '12px 16px', borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap', gap: 8,
                 }}>
@@ -1058,6 +1157,9 @@ export default function ResourceDataPage() {
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>All Records</span>
                   </Space>
                   <Space wrap>
+                    <Button size="small" onClick={() => applyDatePreset('today')} style={{ borderRadius: 8, fontSize: 12 }}>Hari Ini</Button>
+                    <Button size="small" onClick={() => applyDatePreset('week')} style={{ borderRadius: 8, fontSize: 12 }}>Minggu Ini</Button>
+                    <Button size="small" onClick={() => applyDatePreset('month')} style={{ borderRadius: 8, fontSize: 12 }}>Bulan Ini</Button>
                     <DatePicker
                       showTime={{ format: 'HH:mm:ss', defaultValue: dayjs('00:00:00', 'HH:mm:ss') }}
                       format="YYYY-MM-DD HH:mm:ss"

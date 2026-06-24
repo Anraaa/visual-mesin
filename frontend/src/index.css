@@ -602,6 +602,15 @@ body {
   .stat-card {
     border-radius: 12px !important;
   }
+
+  /* Date picker full width on mobile */
+  .resource-table-toolbar .ant-picker {
+    width: 100% !important;
+  }
+  .resource-table-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
 }
 
 /* ── CSS Custom Properties: Light ── */

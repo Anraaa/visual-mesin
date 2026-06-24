@@ -12,9 +12,9 @@ ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 INSERT INTO resource_group_items (group_id, resource_name, label, sort_order) VALUES
 (1, 'item_measurement', 'item_measurement', 1),
-(1, 'materials', 'materials', 2),
+(1, 'material', 'material', 2),
 (1, 'monitoringtl1', 'monitoringtl1', 3),
-(1, 'rscpc1', 'rscpc1', 4),
+(1, 'rsc_pc1', 'rsc_pc1', 4),
 (1, 'rtltl1', 'rtltl1', 5),
 (2, 'rtci1', 'rtci1', 1),
 (2, 'rtctr1', 'rtctr1', 2),
@@ -31,7 +31,7 @@ INSERT INTO resource_group_items (group_id, resource_name, label, sort_order) VA
 (5, 'rtbc4', 'rtbc4', 7),
 (5, 'rtbe1', 'rtbe1', 8),
 (5, 'rtbe2', 'rtbe2', 9),
-(6, 'trimmings', 'trimmings', 1),
+(6, 'trimming', 'trimming', 1),
 (7, 'rteex1', 'rteex1', 1),
 (8, 'rteex2', 'rteex2', 1),
 (8, 'recorddatapcs', 'recorddatapcs', 2),

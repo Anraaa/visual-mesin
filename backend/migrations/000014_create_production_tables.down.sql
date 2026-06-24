@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS `rtba1`, `rtba2`, `rtba3`, `rtbc1`, `rtbc2`, `rtbc3`, `rtbc4`, `rtbe1`, `rtbe2`;
+DROP TABLE IF EXISTS `rteex1`, `rteex2`, `rteex3head`;
+DROP TABLE IF EXISTS `curtire`, `item_measurement`;
+DROP TABLE IF EXISTS \`trimming\`, \`rtc-tr1\`;
+DROP TABLE IF EXISTS \`material\`, \`monitoringtl1\`, \`rtltl1\`;
+DROP TABLE IF EXISTS `alarm_history`;
+DROP TABLE IF EXISTS `recipe1`, `recipe1queue`, `recipe_history`;
+DROP TABLE IF EXISTS `order_report`, `batch_report`;
+DROP TABLE IF EXISTS `recorddatacyclic`, `recorddatapcs`;
+DROP TABLE IF EXISTS `datalog`, `rsc_pc1`;
+DROP TABLE IF EXISTS `rtci1`, `rtctr1`;
+DELETE FROM resource_group_items WHERE resource_name IN ('curtire', 'trimming', 'rtc-tr1');
