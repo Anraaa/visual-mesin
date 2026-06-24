@@ -7,14 +7,7 @@
     "info": {
         "description": "API for Visual Mesin - Tire Manufacturing Production Monitoring System",
         "title": "Visual Mesin API",
-        "contact": {
-            "name": "Developer",
-            "email": "dev@visualmesin.com"
-        },
-        "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        },
+        "contact": {},
         "version": "1.0"
     },
     "host": "localhost:8080",

@@ -7,6 +7,6 @@ DROP TABLE IF EXISTS `alarm_history`;
 DROP TABLE IF EXISTS `recipe1`, `recipe1queue`, `recipe_history`;
 DROP TABLE IF EXISTS `order_report`, `batch_report`;
 DROP TABLE IF EXISTS `recorddatacyclic`, `recorddatapcs`;
-DROP TABLE IF EXISTS `datalog`, `rsc_pc1`;
+DROP TABLE IF EXISTS `datalog`, `rsc-pc1`;
 DROP TABLE IF EXISTS `rtci1`, `rtctr1`;
 DELETE FROM resource_group_items WHERE resource_name IN ('curtire', 'trimming', 'rtc-tr1');

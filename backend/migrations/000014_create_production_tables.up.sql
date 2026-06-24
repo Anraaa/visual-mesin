@@ -486,8 +486,8 @@ CREATE TABLE IF NOT EXISTS `datalog` (
     `act_width` TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3.15 rsc_pc1
-CREATE TABLE IF NOT EXISTS `rsc_pc1` (
+-- 3.15 rsc-pc1
+CREATE TABLE IF NOT EXISTS `rsc-pc1` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `machine` VARCHAR(20),
     `position` VARCHAR(40),

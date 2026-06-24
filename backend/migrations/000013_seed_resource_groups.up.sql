@@ -14,7 +14,7 @@ INSERT INTO resource_group_items (group_id, resource_name, label, sort_order) VA
 (1, 'item_measurement', 'item_measurement', 1),
 (1, 'material', 'material', 2),
 (1, 'monitoringtl1', 'monitoringtl1', 3),
-(1, 'rsc_pc1', 'rsc_pc1', 4),
+(1, 'rsc-pc1', 'rsc-pc1', 4),
 (1, 'rtltl1', 'rtltl1', 5),
 (2, 'rtci1', 'rtci1', 1),
 (2, 'rtctr1', 'rtctr1', 2),

@@ -55,13 +55,8 @@ definitions:
     type: object
 host: localhost:8080
 info:
-  contact:
-    email: dev@visualmesin.com
-    name: Developer
+  contact: {}
   description: API for Visual Mesin - Tire Manufacturing Production Monitoring System
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
   title: Visual Mesin API
   version: "1.0"
 paths:

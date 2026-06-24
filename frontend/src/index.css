@@ -241,6 +241,45 @@ body {
   border-bottom-right-radius: 12px;
 }
 
+.ant-table-wrapper .ant-table-pagination {
+  margin: 16px !important;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-options {
+  margin-inline-start: auto;
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-total-text {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-right: 12px;
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-item {
+  border-radius: 8px !important;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-item-active {
+  border-color: var(--primary-color) !important;
+  background: var(--primary-color) !important;
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-item-active a {
+  color: #fff !important;
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-options-quick-jumper {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.ant-table-wrapper .ant-table-pagination .ant-pagination-options-quick-jumper input {
+  border-radius: 8px !important;
+  width: 50px;
+  height: 28px;
+  text-align: center;
+}
+
 .ant-layout-sider {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }

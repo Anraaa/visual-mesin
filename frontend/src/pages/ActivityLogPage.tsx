@@ -21,15 +21,16 @@ const actionColors: Record<string, string> = {
 
 export default function ActivityLogPage() {
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
   const [scope, setScope] = useState<string>('all')
   const user = useAuthStore((s) => s.user)
 
   const endpoint = scope === 'me' ? '/api/v1/activity-logs/me' : '/api/v1/activity-logs'
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['activity-logs', scope, page],
+    queryKey: ['activity-logs', scope, page, pageSize],
     queryFn: () =>
-      api.get(endpoint, { params: { page, limit: 50 } }),
+      api.get(endpoint, { params: { page, limit: pageSize } }),
   })
 
   const columns = [
@@ -87,12 +88,16 @@ export default function ActivityLogPage() {
           columns={columns}
           rowKey="id"
           loading={isLoading}
-          onChange={(p) => setPage(p.current || 1)}
+          onChange={(p) => { setPage(p.current || 1); if (p.pageSize) setPageSize(p.pageSize) }}
           pagination={{
             current: page,
-            pageSize: 50,
+            pageSize,
             total: data?.meta?.total,
-            showTotal: (t) => `Total ${t} aktivitas`,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            pageSizeOptions: ['10', '25', '50', '100'],
+            size: 'small',
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
           }}
           scroll={{ x: 'max-content' }}
         />

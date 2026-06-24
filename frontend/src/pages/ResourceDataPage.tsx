@@ -195,7 +195,7 @@ function getWidgetConfig(resource?: string): ResourceWidgetConfig {
     return { sortCol: 'id', trendCol: 'TotalOutput', trendTimeCol: 'date_shift', trendTitle: 'Total Output Trend', distCol: 'codesize', distTitle: 'Code Size', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: null, extraDistTitle: '' }
   }
 
-  if (resource === 'rsc_pc1') {
+  if (resource === 'rsc-pc1') {
     return { sortCol: 'id', trendCol: 'totalseleksi', trendTimeCol: 'starttime', trendTitle: 'Total Seleksi', distCol: 'machine', distTitle: 'Mesin', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, extraDistCol: 'code', extraDistTitle: 'Code' }
   }
 
@@ -221,6 +221,22 @@ function getWidgetConfig(resource?: string): ResourceWidgetConfig {
 
   if (resource === 'alarm_history') {
     return { sortCol: 'id', trendCol: null, trendTimeCol: null, distCol: 'source', distTitle: 'Source', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  if (resource === 'bpbl') {
+    return { sortCol: 'recid', trendCol: null, trendTimeCol: null, distCol: 'probcode', distTitle: 'Problem Code', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, hasQualityTrend: true, qualityTitle: 'Quality Status', qualityStatusCol: 'jdge', qualityTimeCol: 'jdge_date' }
+  }
+
+  if (resource === 'gtentire') {
+    return { sortCol: 'recid', trendCol: null, trendTimeCol: null, distCol: 'jdge', distTitle: 'Judgment', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null, hasQualityTrend: true, qualityTitle: 'Quality Trend', qualityStatusCol: 'jdge', qualityTimeCol: 'jdge_date', extraDistCol: 'probcode', extraDistTitle: 'Problem Code' }
+  }
+
+  if (resource === 'rtl-tl1') {
+    return { sortCol: 'recid', trendCol: 'SpeedA', trendTimeCol: 'tgl', trendTitle: 'Actual Speed Trend', distCol: 'codesize', distTitle: 'Code Size', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
+  }
+
+  if (resource === 'recipe_material') {
+    return { sortCol: 'id', trendCol: null, trendTimeCol: null, distCol: null, distTitle: 'Category', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
   }
 
   return { sortCol: 'recid', trendCol: null, trendTimeCol: null, distCol: null, distTitle: 'Category', hasCT: false, statOKKey: null, statNGKey: null, statTotKey: null }
@@ -277,6 +293,7 @@ export default function ResourceDataPage() {
   const { resource } = useParams<{ resource: string }>()
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
   const [search, setSearch] = useState('')
   const [searchBy, setSearchBy] = useState('')
   const [sortBy, setSortBy] = useState('')
@@ -325,9 +342,9 @@ export default function ResourceDataPage() {
   }
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['resource-data', resource, page, search, searchBy, sortBy, sortDir, startDate, endDate, dateColumn],
+    queryKey: ['resource-data', resource, page, pageSize, search, searchBy, sortBy, sortDir, startDate, endDate, dateColumn],
     queryFn: () => {
-      const params: Record<string, any> = { page, limit: 25, search, search_by: searchBy, sort_by: sortBy, sort_dir: sortDir }
+      const params: Record<string, any> = { page, limit: pageSize, search, search_by: searchBy, sort_by: sortBy, sort_dir: sortDir }
       if (startDate) params.start_date = startDate.format('YYYY-MM-DD HH:mm:ss')
       if (endDate) {
         if (endDate.format('HH:mm:ss') === '00:00:00') {
@@ -553,6 +570,7 @@ export default function ResourceDataPage() {
 
   const handleTableChange = (pagination: any, _filters: any, sorter: any) => {
     setPage(pagination.current)
+    if (pagination.pageSize) setPageSize(pagination.pageSize)
     if (sorter.field) {
       setSortBy(sorter.field)
       setSortDir(sorter.order === 'ascend' ? 'asc' : 'desc')
@@ -1201,7 +1219,7 @@ export default function ResourceDataPage() {
                   rowKey={(record: any) => record.id || record.recid || Math.random()}
                   loading={isLoading || isFetching}
                   onChange={handleTableChange}
-                  pagination={{ current: page, pageSize: 25, total, showSizeChanger: false, showTotal: (t) => `Total ${t} records` }}
+                  pagination={{ current: page, pageSize, total, showSizeChanger: true, showQuickJumper: true, pageSizeOptions: ['10', '25', '50', '100'], size: 'small', showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}` }}
                   scroll={{ x: 'max-content' }}
                   size="small"
                 />
