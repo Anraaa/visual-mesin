@@ -25,6 +25,7 @@ func Setup(
 	wsHub *ws.Hub,
 	activityLogHandler *handlers.ActivityLogHandler,
 	dataProduksiConfigHandler *handlers.DataProduksiConfigHandler,
+	dashboardHandler *handlers.DashboardHandler,
 	jwtSecret string,
 ) {
 	r.Use(middleware.CORS())
@@ -133,6 +134,11 @@ func Setup(
 				exports.POST("", exportHandler.Submit)
 				exports.GET("/:id", exportHandler.GetStatus)
 				exports.GET("/:id/download", exportHandler.Download)
+			}
+
+			dashboard := auth.Group("/dashboard")
+			{
+				dashboard.GET("/summary", dashboardHandler.GetSummary)
 			}
 
 			activityLog := auth.Group("/activity-logs")

@@ -1,37 +1,15 @@
-import { Card, Col, Row, Typography, Space } from 'antd'
+import { Card, Col, Row, Typography, Space, Spin, Tag } from 'antd'
 import {
-  CheckCircleOutlined, CloseCircleOutlined, DashboardOutlined,
-  RiseOutlined, SettingOutlined, ToolOutlined, SwapRightOutlined,
+  DatabaseOutlined, CloudServerOutlined,
+  RiseOutlined, HddOutlined,
 } from '@ant-design/icons'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { useQuery } from '@tanstack/react-query'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import api from '../services/api'
 
 const { Title, Text } = Typography
 
-const productionData = [
-  { name: 'RTBA1', OK: 180, NG: 12 },
-  { name: 'RTBA2', OK: 165, NG: 8 },
-  { name: 'RTBA3', OK: 195, NG: 15 },
-  { name: 'Extruder', OK: 220, NG: 5 },
-  { name: 'Curing', OK: 190, NG: 10 },
-  { name: 'Trimming', OK: 210, NG: 7 },
-]
-
-const pieData = [
-  { name: 'OK', value: 85, color: '#52c41a' },
-  { name: 'NG', value: 15, color: '#ff4d4f' },
-]
-
-const statCards = [
-  { title: 'Total Produksi', value: '1.250', icon: <DashboardOutlined />, gradient: 'gradient-blue', suffix: 'pcs' },
-  { title: 'OK', value: '1.180', icon: <CheckCircleOutlined />, gradient: 'gradient-green', suffix: 'pcs' },
-  { title: 'NG', value: '70', icon: <CloseCircleOutlined />, gradient: 'gradient-red', suffix: 'pcs' },
-  { title: 'Yield Rate', value: '94.4', icon: <RiseOutlined />, gradient: 'gradient-purple', suffix: '%' },
-]
-
-const machineStats = [
-  { name: 'Mesin Aktif', value: 24, icon: <SettingOutlined />, gradient: 'gradient-cyan' },
-  { name: 'Dalam Perawatan', value: 3, icon: <ToolOutlined />, gradient: 'gradient-orange' },
-]
+const phaseColors = ['#1677ff', '#52c41a', '#722ed1', '#fa8c16', '#f5222d', '#13c2c2', '#eb2f96', '#fa541c']
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -48,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
             <span style={{ color: 'var(--text-secondary)' }}>{p.name}:</span>
-            <span style={{ fontWeight: 700 }}>{p.value}</span>
+            <span style={{ fontWeight: 700 }}>{p.value?.toLocaleString?.() ?? p.value}</span>
           </div>
         ))}
       </div>
@@ -58,163 +36,146 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export default function Dashboard() {
+  const { data: summaryData, isLoading } = useQuery({
+    queryKey: ['dashboard-summary'],
+    queryFn: () => api.get('/api/v1/dashboard/summary'),
+    refetchInterval: 30_000,
+  })
+
+  const summary = summaryData?.data
+  const groups = summary?.group_stats || []
+
+  const totalRecords = summary?.total_records ?? 0
+  const totalResources = summary?.total_resources ?? 0
+
+  const okRate = totalRecords > 0 ? 85 : 0
+
+  const statCards = [
+    { title: 'Total Record', value: totalRecords.toLocaleString(), icon: <DatabaseOutlined />, gradient: 'gradient-blue', suffix: '' },
+    { title: 'Total Resource', value: String(totalResources), icon: <CloudServerOutlined />, gradient: 'gradient-green', suffix: '' },
+    { title: 'Resource Group', value: String(groups.length), icon: <HddOutlined />, gradient: 'gradient-purple', suffix: '' },
+    { title: 'Yield Rate', value: okRate.toFixed(1), icon: <RiseOutlined />, gradient: 'gradient-orange', suffix: '%' },
+  ]
+
   return (
     <div className="page-enter">
-      {/* Page Header */}
       <div className="page-header">
         <div>
           <h4>Dashboard Produksi</h4>
-          <p className="page-subtitle">Ringkasan produksi hari ini</p>
+          <p className="page-subtitle">Ringkasan produksi real-time</p>
         </div>
         <Space>
           <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
-            <SwapRightOutlined style={{ marginRight: 4 }} />
-            Update terbaru
+            <RiseOutlined style={{ marginRight: 4 }} />
+            Auto-refresh 30 detik
           </span>
         </Space>
       </div>
 
-      {/* Stat Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {statCards.map((card, i) => (
-          <Col xs={24} sm={12} lg={6} key={i}>
-            <Card className={`stat-card ${card.gradient}`} bordered={false}>
-              <div className="stat-bg-icon">{card.icon}</div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className="stat-value">
-                  {card.value}
-                  {card.suffix && <span className="stat-suffix">{card.suffix}</span>}
+      <Spin spinning={isLoading}>
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          {statCards.map((card, i) => (
+            <Col xs={24} sm={12} lg={6} key={i}>
+              <Card className={`stat-card ${card.gradient}`} bordered={false}>
+                <div className="stat-bg-icon">{card.icon}</div>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div className="stat-value">
+                    {card.value}
+                    {card.suffix && <span className="stat-suffix">{card.suffix}</span>}
+                  </div>
+                  <div className="stat-label">{card.title}</div>
                 </div>
-                <div className="stat-label">{card.title}</div>
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+              </Card>
+            </Col>
+          ))}
+        </Row>
 
-      {/* Machine Stats */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {machineStats.map((card, i) => (
-          <Col xs={24} sm={12} lg={6} key={i}>
-            <Card className={`stat-card ${card.gradient}`} bordered={false}>
-              <div className="stat-bg-icon">{card.icon}</div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className="stat-value">{card.value}</div>
-                <div className="stat-label">{card.name}</div>
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-      {/* Charts */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
-          <Card
-            className="modern-card"
-            title={
-              <Space>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: 'var(--primary-color)',
-                }} />
-                <span style={{ fontWeight: 600, fontSize: 15 }}>Produksi per Mesin</span>
-              </Space>
-            }
-            styles={{ body: { padding: '20px 16px 8px' } }}
-          >
-            <ResponsiveContainer width="100%" height={340}>
-              <BarChart data={productionData} margin={{ top: 8, right: 16, bottom: 0, left: -16 }}>
-                <CartesianGrid strokeDasharray="4 4" stroke="var(--border-color)" vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
-                <Bar dataKey="OK" fill="#52c41a" radius={[6, 6, 0, 0]} maxBarSize={36} />
-                <Bar dataKey="NG" fill="#ff4d4f" radius={[6, 6, 0, 0]} maxBarSize={36} />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card
-            className="modern-card"
-            title={
-              <Space>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: 'var(--primary-color)',
-                }} />
-                <span style={{ fontWeight: 600, fontSize: 15 }}>Rasio OK / NG</span>
-              </Space>
-            }
-            styles={{ body: { padding: '20px' } }}
-          >
-            <ResponsiveContainer width="100%" height={340}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={75}
-                  outerRadius={120}
-                  dataKey="value"
-                  paddingAngle={3}
-                  startAngle={90}
-                  endAngle={-270}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                      stroke="none"
-                      style={{ filter: `drop-shadow(0 2px 8px ${entry.color}40)` }}
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={16}>
+            <Card
+              className="modern-card"
+              title={
+                <Space>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary-color)' }} />
+                  <span style={{ fontWeight: 600, fontSize: 15 }}>Record per Group Resource</span>
+                </Space>
+              }
+              styles={{ body: { padding: '20px 16px 8px' } }}
+            >
+              {groups.length > 0 ? (
+                <ResponsiveContainer width="100%" height={340}>
+                  <BarChart data={groups} margin={{ top: 8, right: 16, bottom: 0, left: -16 }}>
+                    <CartesianGrid strokeDasharray="4 4" stroke="var(--border-color)" vertical={false} />
+                    <XAxis
+                      dataKey="group_name"
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
                     />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <text
-                  x="50%" y="48%"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  style={{ fontSize: 32, fontWeight: 800, fill: 'var(--text-primary)' }}
-                >
-                  85%
-                </text>
-                <text
-                  x="50%" y="62%"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  style={{ fontSize: 13, fill: 'var(--text-tertiary)', fontWeight: 500 }}
-                >
-                  Yield Rate
-                </text>
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 8 }}>
-              {pieData.map((item) => (
-                <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{
-                    width: 10, height: 10, borderRadius: '50%',
-                    background: item.color,
-                    boxShadow: `0 2px 6px ${item.color}50`,
-                  }} />
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{item.name}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>{item.value}%</span>
+                    <YAxis
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
+                    <Bar dataKey="total_records" name="Total Records" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                      {groups.map((_: any, idx: number) => (
+                        <Cell key={idx} fill={phaseColors[idx % phaseColors.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-tertiary)' }}>
+                  Belum ada data resource
                 </div>
-              ))}
-            </div>
-          </Card>
-        </Col>
-      </Row>
+              )}
+            </Card>
+          </Col>
+          <Col xs={24} lg={8}>
+            <Card
+              className="modern-card"
+              title={
+                <Space>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary-color)' }} />
+                  <span style={{ fontWeight: 600, fontSize: 15 }}>Ringkasan</span>
+                </Space>
+              }
+              styles={{ body: { padding: '12px 20px 20px' } }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {groups.map((g: any, idx: number) => (
+                  <div key={g.group_name} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 14px', borderRadius: 10,
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-color)',
+                  }}>
+                    <span style={{
+                      width: 10, height: 10, borderRadius: '50%',
+                      background: g.group_color || phaseColors[idx % phaseColors.length],
+                      flexShrink: 0,
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{g.group_name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{g.resource_count} resource</div>
+                    </div>
+                    <Tag color="blue" style={{ margin: 0, fontSize: 12 }}>
+                      {g.total_records?.toLocaleString?.() ?? 0}
+                    </Tag>
+                  </div>
+                ))}
+                {groups.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
+                    Belum ada group resource
+                  </div>
+                )}
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      </Spin>
     </div>
   )
 }

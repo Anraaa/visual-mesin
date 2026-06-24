@@ -665,6 +665,18 @@ func (s *ResourceQueryService) GetJudgmentSummary(resourceName string) ([]Judgme
 	return result, nil
 }
 
+func (s *ResourceQueryService) GetResourceCount(resourceName string) (int64, error) {
+	gdb, err := s.getGormDB(resourceName)
+	if err != nil {
+		return 0, err
+	}
+	var count int64
+	if err := gdb.Table(resourceName).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func getTableColumns(gdb *gorm.DB, tableName string) ([]ColumnInfo, error) {
 	var columns []ColumnInfo
 

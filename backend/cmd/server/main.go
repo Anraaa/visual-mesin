@@ -89,6 +89,9 @@ func main() {
 	resourceGroupRepo := repository.NewResourceGroupRepo(gormDB)
 	dataProduksiConfigHandler := handlers.NewDataProduksiConfigHandler(resourceGroupRepo, resourceDBConfigRepo, gormDB)
 
+	dashboardSvc := services.NewDashboardService(resourceGroupRepo, resourceQuerySvc)
+	dashboardHandler := handlers.NewDashboardHandler(dashboardSvc)
+
 	// WebSocket Hub
 	wsHub := ws.NewHub()
 	go wsHub.Run()
@@ -140,7 +143,7 @@ func main() {
 
 	routes.Setup(r, authHandler, jwtSvc, dbConnHandler, resourceDBHandler, resourceQueryHandler,
 		userHandler, roleHandler, permHandler, exportHandler, aiSchemaMapHandler, aiChatHandler,
-		wsHub, activityLogHandler, dataProduksiConfigHandler, cfg.JWTSecret)
+		wsHub, activityLogHandler, dataProduksiConfigHandler, dashboardHandler, cfg.JWTSecret)
 
 	addr := ":" + cfg.ServerPort
 	log.Printf("Server starting on %s", addr)
